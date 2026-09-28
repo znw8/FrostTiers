@@ -1,1 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FrostTiers - Rankings</title>
+<link rel="icon" href="logo.jpg">
+<link rel="stylesheet" href="extra.css">
+<style>
+:root{--bg:#0a0d14;--bar:#0e131c;--panel:#111826;--card:#151c2b;--pill:#1a2334;--line:#222c3f;--text:#f3f5f9;--mute:#7c879b;--gold:#e9b83f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI",system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.app{max-width:760px;margin:0 auto;padding:0 12px 40px}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #6cb8ff;outline-offset:2px}
+.hdr{margin-top:14px;display:flex;align-items:center;gap:12px;background:var(--bar);border:1px solid var(--line);border-radius:22px;padding:12px 16px}
+.logo{font:900 italic 27px/1 Impact,"Arial Black",sans-serif;letter-spacing:1px;background:linear-gradient(#fff 15%,#8fd3ff 55%,#3b8fd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #10315a) drop-shadow(0 3px 0 #0a1c36);white-space:nowrap}
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:var(--pill);border-radius:999px;padding:0 16px;height:52px}
+.search input{flex:1;min-width:0;background:none;border:0;color:var(--text);font-size:17px;outline:0}
+.search svg{width:22px;height:22px;flex:none;stroke:var(--mute)}
+.burger{background:none;border:0;padding:8px}
+.burger svg{width:26px;height:26px;stroke:var(--text)}
+.tabs{display:flex;gap:10px;overflow-x:auto;margin-top:26px;padding-bottom:0;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;width:calc((100% - 30px)/3.4);min-width:118px;background:var(--bar);border:1px solid var(--line);border-bottom:0;border-radius:24px 24px 0 0;padding:14px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--mute);font-weight:800;font-size:19px;position:relative}
+.tab svg{width:42px;height:42px}
+.tab.on{background:var(--panel);color:var(--text)}
+.tab.on::after{content:"";position:absolute;left:6px;right:6px;bottom:0;height:3px;background:var(--text);border-radius:2px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:0 0 26px 26px;padding:18px 14px 16px}
+.info{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.ibtn{display:flex;align-items:center;gap:10px;background:var(--pill);border:0;border-radius:14px;padding:0 20px;height:50px;font-size:18px;font-weight:500}
+.ibtn i{width:22px;height:22px;border-radius:50%;background:var(--text);color:var(--bar);display:grid;place-items:center;font:800 14px Georgia,serif;font-style:normal}
+.srv{display:flex;align-items:center;gap:10px}
+.slogo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#6cc4ff,#2a63c9);display:grid;place-items:center;font:900 italic 24px Impact,sans-serif;color:#fff;text-shadow:0 2px 0 #12306a}
+.sl{font-size:12px;font-weight:800;letter-spacing:.5px;color:var(--mute)}
+.ip{display:flex;align-items:center;gap:10px;background:var(--pill);border-radius:10px;padding:0 12px;height:38px;font-weight:700;font-size:17px;border:0}
+.ip svg{width:20px;height:20px;stroke:var(--mute)}
+.dc{width:48px;height:38px;border:0;border-radius:10px;background:#4f5cf0;display:grid;place-items:center}
+.dc svg{width:26px;height:26px;fill:#fff}
+.cols{display:grid;grid-template-columns:84px 1fr 96px;padding:26px 12px 12px;color:var(--mute);font-weight:900;font-size:19px;letter-spacing:.5px;opacity:.7}
+.cols div:nth-child(2){padding-left:16px}.cols div:nth-child(3){text-align:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:10px 10px 16px;margin-bottom:16px}
+.top{display:grid;grid-template-columns:42% 1fr auto;align-items:center;gap:14px}
+.rk{height:78px;position:relative;clip-path:polygon(0 0,100% 0,86% 100%,0 100%);background:#4a5568;overflow:hidden}
+.rk.p1{background:#e5b94f}.rk.p2{background:#8a9aa3}.rk.p3{background:#b8702e}.rk.px{background:var(--pill)}
+.rk b{position:absolute;left:14px;top:50%;transform:translateY(-50%);font:900 italic 46px/1 Inter,system-ui,sans-serif;color:#fff;text-shadow:3px 3px 0 rgba(0,0,0,.28);z-index:2}
+.rk svg.skin{position:absolute;right:16%;bottom:0;height:100%}
+.nm{font-weight:800;font-size:28px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tt{display:flex;align-items:center;gap:8px;color:var(--mute);font-size:21px;margin-top:6px;white-space:nowrap;overflow:hidden}
+.tt svg{width:26px;height:26px;flex:none}
+.tt span{overflow:hidden;text-overflow:ellipsis}
+.reg{width:66px;height:66px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:26px}
+.reg.NA{background:#4a1d26;color:#ff5a63}.reg.EU{background:#17381f;color:#57d36a}.reg.AS{background:#182a52;color:#6fa5ff}.reg.OC{background:#3a2050;color:#d08cff}
+.tl{font-weight:900;font-size:26px;color:var(--mute);margin:22px 0 10px 8px;opacity:.85}
+.tiers{display:flex;flex-wrap:wrap;gap:4px 8px;padding:0 4px}
+.t{display:flex;flex-direction:column;align-items:center;width:calc((100% - 56px)/8);min-width:44px}
+.t .c{width:100%;aspect-ratio:1;max-width:46px;border-radius:50%;background:#0d121b;display:grid;place-items:center;border:3px solid transparent}
+.t .c svg{width:62%;height:62%}
+.t .b{margin-top:2px;font-weight:900;font-size:19px;padding:4px 8px;border-radius:12px;background:#1d2434;letter-spacing:.3px}
+.t.k0 .b{color:#e9b83f;background:#3a3020}.t.k1 .b{color:#c9b57a;background:#2c2a26}.t.k2 .b{color:#d7873a;background:#3a2a1b}.t.k2 .c{border-color:#7b4b20}.t.k3 .b{color:#8f98ab;background:#232a3a}.t.k4 .b{color:#9a7b60;background:#2b2523}.t.k5 .b{color:#7c879b}
+.empty{text-align:center;color:var(--mute);padding:40px 0}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+.dr{position:fixed;top:0;bottom:0;right:0;width:min(78%,420px);background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .25s;z-index:10;padding:calc(20px + env(safe-area-inset-top,0px)) 22px 24px;display:flex;flex-direction:column;overflow-y:auto}
+body.open .ov{opacity:1;pointer-events:auto}body.open .dr{transform:none}
+.x{align-self:flex-end;width:46px;height:46px;border-radius:12px;border:2px solid var(--mute);background:none}
+.x svg{width:24px;height:24px;stroke:var(--text)}
+.dr nav{margin-top:26px;display:flex;flex-direction:column;gap:14px}
+.dr nav a{display:flex;align-items:center;gap:18px;color:var(--text);text-decoration:none;font-weight:800;font-size:28px;padding:8px 0}
+.dr nav a.mu{color:var(--mute);opacity:.5}
+.dr nav svg{width:44px;height:44px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8}
+.dh{margin-top:auto;padding-top:40px;color:var(--mute);font-size:28px;font-weight:500}
+.dg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+.dg a{aspect-ratio:1;background:var(--card);border:1px solid var(--line);border-radius:16px;display:grid;place-items:center}
+.dg svg{width:58%;height:58%}
+@media(min-width:600px){.nm{font-size:30px}.tab{min-width:140px}}
+@media(max-width:400px){.nm{font-size:23px}.tt{font-size:17px}.rk b{font-size:38px}.cols{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.dr,.ov{transition:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-overall" viewBox="0 0 24 24"><path fill="#e0a21a" d="M6 3h12v5.5a6 6 0 0 1-12 0z"/><path fill="none" stroke="#e0a21a" stroke-width="2" d="M6 5H3v2.5A3.5 3.5 0 0 0 6.5 11M18 5h3v2.5a3.5 3.5 0 0 1-3.5 3.5"/><path fill="#e0a21a" d="M10.5 14h3v4h-3zM7.5 19h9v2.5h-9z"/></symbol>
+<symbol id="i-ltm" viewBox="0 0 24 24"><path fill="none" stroke="#c4c9d2" stroke-width="2.6" stroke-linecap="round" d="M5 5l14 14M19 5L5 19"/><path fill="none" stroke="#9aa1ad" stroke-width="3.5" stroke-linecap="round" d="M4 17l3 3M20 17l-3 3"/></symbol>
+<symbol id="i-vanilla" viewBox="0 0 24 24"><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" d="M12 2l8.7 5v10L12 22l-8.7-5V7z"/><path fill="#c48cf0" d="M12 6.5l5 3v5l-5 3-5-3v-5z"/></symbol>
+<symbol id="i-uhc" viewBox="0 0 24 24"><path fill="#e0464c" d="M12 21C4 15 2 11.5 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 3.500-2 7-10 13z"/><path fill="none" stroke="#a7262d" stroke-width="1.6" stroke-linecap="round" d="M6 9l3 3M18 9l-3 3"/></symbol>
+<symbol id="i-pot" viewBox="0 0 24 24"><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" d="M9.500 3h5v5l4.500 8a4 4 0 0 1-3.500 6h-7A4 4 0 0 1 5 16l4.500-8z"/><path fill="#e0546c" d="M6.800 15.500h10.400l1 1.800a3 3 0 0 1-2.600 4.200H8.400a3 3 0 0 1-2.600-4.200z"/></symbol>
+<symbol id="i-nethop" viewBox="0 0 24 24"><path fill="#9b7fc8" d="M3 12a9 9 0 0 1 18 0v8h-5v-3.500l-2-2h-4l-2 2V20H3z"/><path fill="#6b4fa0" d="M6.500 11.500h4l1 2.500h1l1-2.500h4v3.500h-3l-1-1.500h-2l-1 1.500h-3z"/></symbol>
+<symbol id="i-smp" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#0b2a2a" stroke="#3ec9a7" stroke-width="2"/><path fill="none" stroke="#9af0dc" stroke-width="2.600" stroke-linecap="round" d="M6.500 14.500A6.500 6.500 0 0 0 16 17"/><path fill="#020808" d="M9 6l8 5-3 7z" opacity=".7"/></symbol>
+<symbol id="i-sword" viewBox="0 0 24 24"><path fill="#5ba7e6" d="M21 2l1 5-10 10-4-4z"/><path fill="#3b6fb0" d="M7 13l4 4-2 2-4-4z"/><path fill="#2d5a94" d="M4.500 16.500l3 3-3 1.500-1.500-1.500z"/></symbol>
+<symbol id="i-axe" viewBox="0 0 24 24"><path fill="none" stroke="#3d7fd4" stroke-width="3" stroke-linecap="round" d="M4 20L15 9"/><path fill="#66c4e8" d="M13 4l4-2 5 5-2 4-3 1-4-4z"/></symbol>
+<symbol id="i-mace" viewBox="0 0 24 24"><path fill="none" stroke="#8a86b8" stroke-width="3" stroke-linecap="round" d="M4 20L13 11"/><path fill="#8a90a0" d="M13 3l4-1 5 5-1 4-5 1-4-4z"/><path fill="#5d6272" d="M17 2l5 5-1 4z"/></symbol>
+<symbol id="i-rank" viewBox="0 0 24 24"><path fill="#f5c64a" d="M12 1l5 5-5 5-5-5z"/><path fill="#e0a21a" d="M12 8l6 6-6 8-6-8z"/><path fill="#fff3c2" d="M12 11l3 3-3 4-3-4z"/></symbol>
+</defs></svg>
+
+<div class="app">
+ <div class="hdr"><img class="hl" src="logo.jpg" alt="FrostTiers"><div class="logo">FROSTTIERS</div>
+  <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" placeholder="Search player..." aria-label="Search player"></label>
+  <button class="burger" id="mb" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div>
+ <div class="tabs" id="tabs" role="tablist"></div>
+ <div class="box">
+  <div class="info"><button class="ibtn"><i>i</i>Information</button>
+   <div class="srv"><img class="slogo" src="logo.jpg" alt=""><div><div class="sl">SERVER IP</div><div style="display:flex;gap:8px;margin-top:2px"><div class="ip">Coming soon</div><button class="dc" aria-label="Discord"><svg viewBox="0 0 24 24"><path d="M19.500 5.500A16 16 0 0 0 15.600 4.300l-.5 1a14.500 14.500 0 0 0-4.200 0l-.5-1A16 16 0 0 0 6.500 5.500C4 9.300 3.300 13 3.600 16.600a16 16 0 0 0 4.900 2.500l1-1.600a10 10 0 0 1-1.600-.8l.4-.3a11.500 11.500 0 0 0 9.400 0l.4.300c-.5.300-1 .6-1.600.8l1 1.600a16 16 0 0 0 4.900-2.500c.4-4.200-.7-7.900-2.900-11.100zM9.400 14.400c-.9 0-1.700-.9-1.700-1.900s.7-1.900 1.700-1.900 1.700.9 1.700 1.900-.8 1.900-1.700 1.900zm5.200 0c-.9 0-1.700-.9-1.700-1.900s.7-1.900 1.700-1.900 1.700.9 1.700 1.900-.8 1.900-1.700 1.900z"/></svg></button></div></div></div></div>
+  <div class="cols"><div>#</div><div>PLAYER</div><div>REGION</div></div>
+  <div id="list"></div>
+ </div>
+</div>
+
+<div class="ov" id="ov"></div>
+<aside class="dr" id="dr" aria-label="Menu">
+ <button class="x" id="xb" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+ <nav><a class="mu" href="#"><svg viewBox="0 0 24 24"><path stroke-linejoin="round" d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+ <a href="#"><svg viewBox="0 0 24 24"><path stroke-linejoin="round" d="M7 3h10v6a5 5 0 0 1-10 0zM7 5H3v2a4 4 0 0 0 4 4M17 5h4v2a4 4 0 0 1-4 4M12 14v4M8 21h8M10 18h4"/></svg>Rankings</a>
+ <a href="#"><svg viewBox="0 0 24 24"><path stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M10 13l-2 2 2 2M14 13l2 2-2 2"/></svg>API Docs</a></nav>
+ <div class="dh">Discords</div><div class="dg" id="dg"></div>
+</aside>
+
+<script>
+const M=[["Overall","overall"],["LTMs","ltm"],["Vanilla","vanilla"],["UHC","uhc"],["Pot","pot"],["NethOP","nethop"],["SMP","smp"],["Sword","sword"],["Axe","axe"],["Mace","mace"]];
+const TI=["HT1","LT1","HT2","LT2","HT3","LT3","HT4","LT4","HT5","LT5"];
+const sd=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
+const I=k=>`<svg viewBox="0 0 24 24"><use href="#i-${k}"/></svg>`;
+const G=M.slice(2);
+let D=[];
+let mode="Overall";const tabs=document.getElementById("tabs"),list=document.getElementById("list"),q=document.getElementById("q");
+M.forEach(m=>{const b=document.createElement("button");b.className="tab";b.setAttribute("role","tab");b.innerHTML=I(m[1])+m[0];b.onclick=()=>{mode=m[0];render()};b.dataset.m=m[0];tabs.appendChild(b)});
+document.getElementById("dg").innerHTML=G.map(m=>`<a href="#" aria-label="${m[0]} Discord">${I(m[1])}</a>`).join("");
+function render(){
+ [...tabs.children].forEach(b=>{const on=b.dataset.m===mode;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});
+ const f=q.value.trim().toLowerCase();
+ let a=D.filter(d=>d.n.toLowerCase().includes(f));
+ const key=(M.find(m=>m[0]===mode)||[])[1];
+ if(mode!=="Overall"&&mode!=="LTMs")a=a.filter(d=>d.tiers[key]!=null).sort((x,y)=>x.tiers[key]-y.tiers[key]);
+ if(mode==="LTMs")a=[];
+ if(!a.length){list.innerHTML=`<div class="empty">${mode==="LTMs"?"No LTM rankings yet.":(q.value?"No players found.":"No players ranked yet.")}</div>`;return}
+ list.innerHTML=a.map((d,i)=>{
+  const es=(mode==="Overall")?Object.entries(d.tiers).sort((x,y)=>x[1]-y[1]):[[key,d.tiers[key]]];
+  const th=es.map(([k,v])=>`<div class="t k${Math.min(5,Math.floor(v/2)*1+(v%2?0:0))}"><div class="c">${I(k)}</div><div class="b">${TI[v]}</div></div>`).join("");
+  return `<article class="card"><div class="top"><div class="rk ${i<3?'p'+(i+1):'px'}"><b>${i+1}.</b><img class="head" src="https://mc-heads.net/avatar/${d.n}/128" alt="" loading="lazy" onerror="this.style.display='none'"></div><div style="min-width:0"><div class="nm">${d.n}</div><div class="tt">${I("rank")}<span>${d.t}</span></div></div><div class="reg ${d.r}">${d.r}</div></div><div class="tl">TIERS</div><div class="tiers">${th}</div></article>`}).join("");
+}
+async function load(){try{D=await(await fetch("/api/players")).json()}catch(e){D=[]}render()}
+window.loadPlayers=load;
+q.oninput=render;render();load();
+const b=document.body,op=v=>b.classList.toggle("open",v);
+document.getElementById("mb").onclick=()=>op(true);document.getElementById("xb").onclick=()=>op(false);document.getElementById("ov").onclick=()=>op(false);
+</script>
+<script src="app.js"></script>
+</body>
+</html>
 
