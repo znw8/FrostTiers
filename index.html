@@ -97,6 +97,39 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #6cb8
 .auth-account.active{display:block}
 .auth-account-name{font-size:27px;font-weight:900;margin-top:2px}
 .auth-account-info{color:var(--mute);font-size:14px;margin:7px 0 20px}
+.account-role{display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;border-radius:999px;background:#1b2b40;color:#8fcfff;font-size:13px;font-weight:900;margin-bottom:14px}
+.admin-open-btn{display:none;width:100%;height:46px;border:0;border-radius:11px;background:#273f61;color:#fff;font-weight:900;font-size:15px;margin-bottom:10px;transition:transform .25s ease,filter .25s ease}
+.admin-open-btn:hover{transform:translateY(-2px);filter:brightness(1.1)}
+
+/* ADMIN */
+.admin-modal{display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:14px}
+.admin-modal.active{display:flex;animation:profileBackdrop .25s ease}
+.admin-card{position:relative;width:min(100%,900px);max-height:calc(100vh - 28px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 25px 90px rgba(0,0,0,.55),0 0 45px rgba(105,199,255,.07);animation:profileIn .35s cubic-bezier(.16,1,.3,1)}
+.admin-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.admin-header h2{margin:0;font-size:26px}
+.admin-close{width:40px;height:40px;border:0;border-radius:50%;background:#1c2536;display:grid;place-items:center}
+.admin-close svg{width:19px;height:19px;stroke:var(--text)}
+.admin-tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;scrollbar-width:none}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tab{border:1px solid var(--line);background:var(--pill);border-radius:10px;padding:10px 15px;font-weight:800;white-space:nowrap}
+.admin-tab.active{background:#29466b;border-color:#41698f}
+.admin-section{display:none}
+.admin-section.active{display:block}
+.admin-section-title{font-size:20px;font-weight:900;margin:4px 0 12px}
+.admin-list{display:flex;flex-direction:column;gap:8px}
+.admin-user{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.admin-user-main{min-width:0}
+.admin-user-name{font-weight:900;font-size:16px}
+.admin-user-discord{color:var(--mute);font-size:13px;margin-top:3px;overflow:hidden;text-overflow:ellipsis}
+.admin-user-role{display:flex;align-items:center;gap:8px;flex:none}
+.admin-role-select{height:38px;background:var(--pill);border:1px solid var(--line);border-radius:9px;color:var(--text);padding:0 9px;font:inherit;font-weight:700}
+.admin-role-select:disabled{opacity:.55}
+.admin-player{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px}
+.admin-player-name{font-weight:900}
+.admin-player-meta{color:var(--mute);font-size:13px;margin-top:4px}
+.admin-note{color:var(--mute);line-height:1.5;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.admin-error{color:#ff6b73;background:rgba(224,70,76,.1);border:1px solid rgba(224,70,76,.2);border-radius:10px;padding:10px}
+.admin-success{color:#70e090;background:rgba(70,224,120,.08);border:1px solid rgba(70,224,120,.15);border-radius:10px;padding:10px}
 
 /* COLUMNS */
 .cols{display:grid;grid-template-columns:67px 1fr 76px;padding:19px 9px 9px;color:var(--mute);font-weight:900;font-size:14px;letter-spacing:.5px;opacity:.7;animation:fadeUp .5s ease .2s backwards}
@@ -184,7 +217,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #6cb8
 .ptier .c svg{width:60%;height:60%}
 .ptier b{font-size:16px;font-weight:900;color:var(--gold)}
 
-/* TIER BOARD (gamemode view) */
+/* TIER BOARD */
 .board{display:flex;gap:8px;overflow-x:auto;padding:14px 2px 18px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .board::-webkit-scrollbar{display:none}
 .tcol{flex:none;width:min(69%,320px)}
@@ -255,7 +288,14 @@ body.open .dr nav a:nth-child(3){animation-delay:.16s}
 
 /* RESPONSIVE */
 @media(min-width:600px){.nm{font-size:22px}.tab{min-width:112px}}
-@media(max-width:600px){.app{max-width:100%;padding-left:9px;padding-right:9px}.card:hover{transform:translateY(-3px)}}
+@media(max-width:600px){
+.app{max-width:100%;padding-left:9px;padding-right:9px}
+.card:hover{transform:translateY(-3px)}
+.admin-card{padding:18px}
+.admin-user{align-items:flex-start;flex-direction:column}
+.admin-user-role{width:100%}
+.admin-role-select{width:100%}
+}
 @media(max-width:400px){.nm{font-size:19px}.tt{font-size:14px}.rk b{font-size:30px}.cols{font-size:12px}.t .b{font-size:12px}.pname{font-size:28px}.psec{font-size:22px}.account-name{max-width:80px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
 </style>
@@ -341,7 +381,6 @@ body.open .dr nav a:nth-child(3){animation-delay:.16s}
 <div class="info">
 <button class="ibtn" onclick="showInfo()"><i>i</i>Information</button>
 
-<!-- ACCOUNT BUTTON -->
 <button class="account-btn" id="accountButton" type="button" aria-haspopup="dialog" aria-controls="authModal">
 <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 3.4-6 8-6s7.2 1.8 8 6"/></svg>
 <span class="account-name" id="accountButtonText">Account</span>
@@ -431,7 +470,46 @@ body.open .dr nav a:nth-child(3){animation-delay:.16s}
 <img class="auth-logo" src="IMG_3783.jpeg" alt="FrostTiers">
 <div class="auth-account-name" id="loggedInMinecraft"></div>
 <div class="auth-account-info" id="loggedInDiscord"></div>
+<div class="account-role" id="loggedInRole">User</div>
+<button class="admin-open-btn" id="adminPanelButton" type="button">Admin Panel</button>
 <button class="auth-logout" id="logoutButton" type="button">Log Out</button>
+</div>
+
+</div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-modal" id="adminModal" aria-hidden="true">
+<div class="admin-card">
+
+<div class="admin-header">
+<h2>FrostTiers Admin Panel</h2>
+<button class="admin-close" id="adminClose" aria-label="Close">
+<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+</button>
+</div>
+
+<div class="admin-tabs">
+<button class="admin-tab active" data-admin-section="users">Users</button>
+<button class="admin-tab" data-admin-section="players">Players</button>
+<button class="admin-tab" data-admin-section="tests">Tests</button>
+</div>
+
+<div class="admin-section active" id="adminUsersSection">
+<div class="admin-section-title">Manage Users</div>
+<div class="admin-list" id="adminUsersList">Loading users...</div>
+</div>
+
+<div class="admin-section" id="adminPlayersSection">
+<div class="admin-section-title">Manage Players</div>
+<div class="admin-list" id="adminPlayersList">Loading players...</div>
+</div>
+
+<div class="admin-section" id="adminTestsSection">
+<div class="admin-section-title">Testing</div>
+<div class="admin-note">
+Test management will be connected to the testing API when the backend test-management endpoints are added.
+</div>
 </div>
 
 </div>
@@ -487,8 +565,8 @@ const fallbackPlayers=[
 {n:"Radlus",r:"NA",t:"HT4",tiers:{vanilla:6,uhc:7,pot:5,nethop:7,smp:6,sword:6,axe:7,mace:7}},
 {n:"Capitalizatlon",r:"EU",t:"LT4",tiers:{vanilla:7,uhc:8,pot:6,nethop:8,smp:7,sword:7,axe:8,mace:8}}
 ];
-let D=[...fallbackPlayers];
 
+let D=[...fallbackPlayers];
 const G=M.slice(1);
 
 M.forEach(m=>{
@@ -499,7 +577,11 @@ button.setAttribute("role","tab");
 button.setAttribute("aria-selected",m[0]==="Overall"?"true":"false");
 button.dataset.m=m[0];
 button.innerHTML=I(m[1])+m[0];
-button.addEventListener("click",()=>{closeProfile();mode=m[0];render()});
+button.addEventListener("click",()=>{
+closeProfile();
+mode=m[0];
+render();
+});
 tabs.appendChild(button);
 });
 
@@ -525,6 +607,7 @@ const player=D.find(p=>p.n.toLowerCase()===String(name).toLowerCase());
 if(!player)return;
 
 const points=getPlayerPoints(player);
+
 document.getElementById("profileName").textContent=player.n;
 document.getElementById("profileTitle").textContent=combatTitle(points);
 document.getElementById("profileRegion").textContent=REGIONS[player.r]||player.r||"";
@@ -534,17 +617,27 @@ document.getElementById("profileNameMC").href="https://namemc.com/profile/"+enco
 
 const initial=document.getElementById("profileInitial");
 const skin=document.getElementById("profileSkin");
+
 initial.textContent=player.n[0].toUpperCase();
 initial.style.display="";
 skin.style.display="";
+
 skin.onload=()=>{initial.style.display="none"};
-skin.onerror=()=>{skin.style.display="none"};
+skin.onerror=()=>{
+skin.style.display="none";
+};
+
 skin.src="https://skinrender.dev/render/"+encodeURIComponent(player.n)+"/bust?size=240&crop=true&yaw=-15";
 
 const profileKeys=["vanilla","uhc","pot","nethop","smp","sword","axe","mace"];
+
 document.getElementById("profileTiers").innerHTML=profileKeys.map((key,index)=>{
 const v=player.tiers?.[key];
-return `<div class="ptier" style="--profile-tier-index:${index}"><div class="c">${I(key)}</div><b>${v==null?"—":TI[v]}</b></div>`;
+
+return `<div class="ptier" style="--profile-tier-index:${index}">
+<div class="c">${I(key)}</div>
+<b>${v==null?"—":TI[v]}</b>
+</div>`;
 }).join("");
 
 profile.classList.add("active");
@@ -555,8 +648,17 @@ profile.classList.remove("active");
 }
 
 document.getElementById("profileClose").addEventListener("click",closeProfile);
-profile.addEventListener("click",e=>{if(e.target===profile)closeProfile()});
-window.addEventListener("keydown",e=>{if(e.key==="Escape")closeProfile()});
+
+profile.addEventListener("click",e=>{
+if(e.target===profile)closeProfile();
+});
+
+window.addEventListener("keydown",e=>{
+if(e.key==="Escape"){
+closeProfile();
+closeAdminPanel();
+}
+});
 
 function render(){
 [...tabs.children].forEach(button=>{
@@ -566,11 +668,17 @@ button.setAttribute("aria-selected",active?"true":"false");
 });
 
 const search=q.value.trim().toLowerCase();
-let players=D.filter(player=>player.n.toLowerCase().includes(search));
+
+let players=D.filter(player=>
+player.n.toLowerCase().includes(search)
+);
+
 const key=(M.find(m=>m[0]===mode)||[])[1];
 
 if(mode!=="Overall"){
-players=players.filter(player=>player.tiers&&player.tiers[key]!=null).sort((a,b)=>a.tiers[key]-b.tiers[key]);
+players=players
+.filter(player=>player.tiers&&player.tiers[key]!=null)
+.sort((a,b)=>a.tiers[key]-b.tiers[key]);
 }
 
 document.querySelector(".cols").style.display=mode==="Overall"?"":"none";
@@ -582,20 +690,51 @@ return;
 
 if(mode!=="Overall"){
 list.innerHTML=`<div class="board">${[1,2,3,4,5].map(n=>{
-const rows=players.filter(p=>Math.floor(p.tiers[key]/2)===n-1).map((p,i)=>{
+const rows=players
+.filter(p=>Math.floor(p.tiers[key]/2)===n-1)
+.map((p,i)=>{
 const hi=p.tiers[key]%2===0;
-return `<div class="prow ${hi?"hi":"lo"}" style="--rc:${REGION_COLORS[p.r]||"#4a5568"};--i:${i}" data-player="${escapeHTML(p.n)}" tabindex="0" role="button" aria-label="Open ${escapeHTML(p.n)} profile"><span class="pav"><img src="https://skinrender.dev/render/${encodeURIComponent(p.n)}/bust?size=64&crop=true&yaw=-15" alt="" loading="lazy" onerror="this.style.display='none'"></span><span class="pn">${escapeHTML(p.n)}</span>${hi?CHEV_TWO:CHEV_ONE}</div>`;
+
+return `<div class="prow ${hi?"hi":"lo"}"
+style="--rc:${REGION_COLORS[p.r]||"#4a5568"};--i:${i}"
+data-player="${escapeHTML(p.n)}"
+tabindex="0"
+role="button"
+aria-label="Open ${escapeHTML(p.n)} profile">
+
+<span class="pav">
+<img src="https://skinrender.dev/render/${encodeURIComponent(p.n)}/bust?size=64&crop=true&yaw=-15"
+alt=""
+loading="lazy"
+onerror="this.style.display='none'">
+</span>
+
+<span class="pn">${escapeHTML(p.n)}</span>
+
+${hi?CHEV_TWO:CHEV_ONE}
+
+</div>`;
 }).join("");
-return `<section class="tcol tc${n}"><div class="thead">${I("overall")}Tier ${n}</div>${rows}</section>`;
+
+return `<section class="tcol tc${n}">
+<div class="thead">${I("overall")}Tier ${n}</div>
+${rows}
+</section>`;
 }).join("")}</div>`;
 
 list.querySelectorAll(".prow").forEach(row=>{
 const playerName=row.dataset.player;
+
 row.addEventListener("click",()=>openProfile(playerName));
+
 row.addEventListener("keydown",event=>{
-if(event.key==="Enter"||event.key===" "){event.preventDefault();openProfile(playerName)}
+if(event.key==="Enter"||event.key===" "){
+event.preventDefault();
+openProfile(playerName);
+}
 });
 });
+
 return;
 }
 
@@ -608,65 +747,112 @@ const tierHTML=entries.map(([tierKey,value],tierIndex)=>`
 <div class="t k${Math.min(5,Math.floor(value/2))}" style="--tier-index:${tierIndex}">
 <div class="c">${I(tierKey)}</div>
 <div class="b">${TI[value]||"Unranked"}</div>
-</div>`).join("");
+</div>
+`).join("");
 
 return `
-<article class="card" style="--card-index:${index}" data-player="${escapeHTML(player.n)}" tabindex="0" role="button" aria-label="Open ${escapeHTML(player.n)} profile">
+<article class="card"
+style="--card-index:${index}"
+data-player="${escapeHTML(player.n)}"
+tabindex="0"
+role="button"
+aria-label="Open ${escapeHTML(player.n)} profile">
+
 <div class="top">
+
 <div class="rk ${index<3?"p"+(index+1):"px"}">
 <b>${index+1}.</b>
-<img class="head" src="https://skinrender.dev/render/${encodeURIComponent(player.n)}/bust?size=160&crop=true&yaw=-15" alt="${escapeHTML(player.n)} Minecraft character" loading="lazy" onerror="this.style.display='none'">
+<img class="head"
+src="https://skinrender.dev/render/${encodeURIComponent(player.n)}/bust?size=160&crop=true&yaw=-15"
+alt="${escapeHTML(player.n)} Minecraft character"
+loading="lazy"
+onerror="this.style.display='none'">
 </div>
+
 <div style="min-width:0">
 <div class="nm">${escapeHTML(player.n)}</div>
 <div class="tt">${I("rank")}<span>${escapeHTML(player.t||"Unranked")}</span></div>
 </div>
+
 <div class="reg ${escapeHTML(player.r||"")}">${escapeHTML(player.r||"—")}</div>
+
 </div>
+
 <div class="tl">TIERS</div>
 <div class="tiers">${tierHTML}</div>
+
 </article>`;
 }).join("");
 
 list.querySelectorAll(".card").forEach(card=>{
 const playerName=card.dataset.player;
+
 card.addEventListener("click",()=>openProfile(playerName));
+
 card.addEventListener("keydown",event=>{
-if(event.key==="Enter"||event.key===" "){event.preventDefault();openProfile(playerName)}
+if(event.key==="Enter"||event.key===" "){
+event.preventDefault();
+openProfile(playerName);
+}
 });
 });
 }
 
 function escapeHTML(value){
-return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+return String(value)
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;")
+.replaceAll("'","&#039;");
 }
 
-q.addEventListener("input",()=>{closeProfile();render()});
+q.addEventListener("input",()=>{
+closeProfile();
+render();
+});
 
 async function load(){
 try{
-const response=await fetch("/api/players");
+const response=await fetch("https://frosttiers.onrender.com/api/players");
+
 if(!response.ok)throw new Error("API unavailable");
+
 const data=await response.json();
+
 if(Array.isArray(data)&&data.length)D=data;
+
 }catch(error){
 D=[...fallbackPlayers];
 }
+
 render();
 }
+
 window.loadPlayers=load;
 
-function openMenu(){document.body.classList.add("open")}
-function closeMenu(){document.body.classList.remove("open")}
+function openMenu(){
+document.body.classList.add("open");
+}
+
+function closeMenu(){
+document.body.classList.remove("open");
+}
+
 document.getElementById("mb").addEventListener("click",openMenu);
 document.getElementById("xb").addEventListener("click",closeMenu);
 menuOverlay.addEventListener("click",closeMenu);
 
 document.getElementById("rankingsLink").addEventListener("click",event=>{
-event.preventDefault();closeMenu();closeProfile();
+event.preventDefault();
+closeMenu();
+closeProfile();
 });
+
 document.getElementById("apiLink").addEventListener("click",event=>{
-event.preventDefault();closeMenu();showInfo();
+event.preventDefault();
+closeMenu();
+showInfo();
 });
 
 function showInfo(){
@@ -690,21 +876,72 @@ const authTitle=document.getElementById("authTitle");
 const authSub=document.getElementById("authSub");
 const authError=document.getElementById("authError");
 const authSwitch=document.getElementById("authSwitch");
+
 const loginForm=document.getElementById("loginForm");
 const signupForm=document.getElementById("signupForm");
+
 const loginUsername=document.getElementById("loginUsername");
 const loginPassword=document.getElementById("loginPassword");
+
 const signupMinecraft=document.getElementById("signupMinecraft");
 const signupDiscord=document.getElementById("signupDiscord");
 const signupPassword=document.getElementById("signupPassword");
 const signupConfirm=document.getElementById("signupConfirm");
+
 const loginSubmit=document.getElementById("loginSubmit");
 const signupSubmit=document.getElementById("signupSubmit");
 const logoutButton=document.getElementById("logoutButton");
 
+const loggedInRole=document.getElementById("loggedInRole");
+const adminPanelButton=document.getElementById("adminPanelButton");
+
+const adminModal=document.getElementById("adminModal");
+const adminClose=document.getElementById("adminClose");
+const adminUsersList=document.getElementById("adminUsersList");
+const adminPlayersList=document.getElementById("adminPlayersList");
+
 function getAccountFromResponse(data){
 if(!data)return null;
 return data.user||data.account||(data.minecraftUsername?data:null);
+}
+
+function normalizeRole(user){
+return String(
+user?.role||
+user?.permissions?.role||
+"user"
+).toLowerCase();
+}
+
+function canUseAdminPanel(user){
+return ["tester","moderator","admin"].includes(normalizeRole(user));
+}
+
+function isAdmin(user){
+return normalizeRole(user)==="admin";
+}
+
+function formatRole(role){
+const roles={
+user:"User",
+tester:"Tester",
+moderator:"Moderator",
+admin:"Admin"
+};
+
+return roles[String(role||"user").toLowerCase()]||"User";
+}
+
+function updateAdminUI(user){
+const role=normalizeRole(user);
+
+if(user&&canUseAdminPanel(user)){
+adminPanelButton.style.display="block";
+}else{
+adminPanelButton.style.display="none";
+}
+
+loggedInRole.textContent=formatRole(role);
 }
 
 function updateAuthUI(user){
@@ -714,21 +951,29 @@ if(currentAccount){
 authForms.style.display="none";
 authAccount.classList.add("active");
 
-document.getElementById("loggedInMinecraft").textContent=currentAccount.minecraftUsername||currentAccount.username||"Account";
+document.getElementById("loggedInMinecraft").textContent=
+currentAccount.minecraftUsername||
+currentAccount.username||
+"Account";
 
 document.getElementById("loggedInDiscord").textContent=
 currentAccount.discordUsername
 ?`Discord: ${currentAccount.discordUsername}`
 :"";
 
+updateAdminUI(currentAccount);
+
 accountButtonText.textContent=
 currentAccount.minecraftUsername||
 currentAccount.username||
 "Account";
+
 }else{
 authForms.style.display="";
 authAccount.classList.remove("active");
 accountButtonText.textContent="Account";
+
+updateAdminUI(null);
 }
 }
 
@@ -762,6 +1007,7 @@ authSwitch.textContent="Don't have an account? Sign up";
 
 function openAuth(){
 clearAuthError();
+
 authModal.classList.add("active");
 authModal.setAttribute("aria-hidden","false");
 
@@ -791,7 +1037,11 @@ headers:{
 }
 };
 
-const response=await fetch(url,config);
+const endpoint=url.startsWith("/api/")
+?"https://frosttiers.onrender.com"+url
+:url;
+
+const response=await fetch(endpoint,config);
 
 let data=null;
 
@@ -820,10 +1070,6 @@ authModal.addEventListener("click",event=>{
 if(event.target===authModal)closeAuth();
 });
 
-window.addEventListener("keydown",event=>{
-if(event.key==="Escape")closeAuth();
-});
-
 authSwitch.addEventListener("click",()=>{
 if(signupForm.style.display==="none"){
 setAuthMode("signup");
@@ -831,6 +1077,9 @@ setAuthMode("signup");
 setAuthMode("login");
 }
 });
+
+
+/* LOGIN */
 
 loginForm.addEventListener("submit",async event=>{
 event.preventDefault();
@@ -848,6 +1097,7 @@ loginSubmit.disabled=true;
 loginSubmit.textContent="Logging in...";
 
 try{
+
 const data=await apiRequest("/api/auth/login",{
 method:"POST",
 body:JSON.stringify({
@@ -870,15 +1120,27 @@ throw new Error("Login succeeded, but no account was returned.");
 }
 
 updateAuthUI(user);
+
 loginForm.reset();
 closeAuth();
+
 }catch(error){
-showAuthError(error.message||"Unable to log in.");
+
+showAuthError(
+error.message||
+"Unable to log in."
+);
+
 }finally{
+
 loginSubmit.disabled=false;
 loginSubmit.textContent="Log In";
+
 }
 });
+
+
+/* SIGNUP */
 
 signupForm.addEventListener("submit",async event=>{
 event.preventDefault();
@@ -908,12 +1170,14 @@ signupSubmit.disabled=true;
 signupSubmit.textContent="Creating...";
 
 try{
+
 const data=await apiRequest("/api/auth/signup",{
 method:"POST",
 body:JSON.stringify({
 minecraftUsername,
 discordUsername,
-password
+password,
+confirmPassword
 })
 });
 
@@ -927,45 +1191,359 @@ user=getAccountFromResponse(me);
 }
 
 if(user){
+
 updateAuthUI(user);
 signupForm.reset();
 closeAuth();
+
 }else{
+
 signupForm.reset();
 loginUsername.value=minecraftUsername;
 setAuthMode("login");
-showAuthError("Account created. Log in with your new account.");
+
+showAuthError(
+"Account created. Log in with your new account."
+);
+
 }
+
 }catch(error){
-showAuthError(error.message||"Unable to create account.");
+
+showAuthError(
+error.message||
+"Unable to create account."
+);
+
 }finally{
+
 signupSubmit.disabled=false;
 signupSubmit.textContent="Create Account";
+
 }
 });
+
+
+/* LOGOUT */
 
 logoutButton.addEventListener("click",async()=>{
 logoutButton.disabled=true;
 logoutButton.textContent="Logging out...";
 
 try{
+
 await apiRequest("/api/auth/logout",{
 method:"POST",
 body:JSON.stringify({})
 });
+
 }catch(error){
-/* Clear the local UI even if the logout request fails. */
+/* Clear local UI even if logout request fails. */
 }
 
 updateAuthUI(null);
+
 logoutButton.disabled=false;
 logoutButton.textContent="Log Out";
+
 closeAuth();
 });
 
-async function restoreAccount(){
+
+/* =========================================================
+   ADMIN PANEL
+   ========================================================= */
+
+function openAdminPanel(){
+
+if(!currentAccount||!canUseAdminPanel(currentAccount)){
+return;
+}
+
+adminModal.classList.add("active");
+adminModal.setAttribute("aria-hidden","false");
+
+showAdminSection("users");
+}
+
+function closeAdminPanel(){
+
+adminModal.classList.remove("active");
+adminModal.setAttribute("aria-hidden","true");
+
+}
+
+function showAdminSection(section){
+
+document.querySelectorAll(".admin-tab").forEach(button=>{
+button.classList.toggle(
+"active",
+button.dataset.adminSection===section
+);
+});
+
+document.querySelectorAll(".admin-section").forEach(element=>{
+element.classList.remove("active");
+});
+
+const target=document.getElementById(
+"admin"+
+section.charAt(0).toUpperCase()+
+section.slice(1)+
+"Section"
+);
+
+if(target)target.classList.add("active");
+
+if(section==="users"){
+loadAdminUsers();
+}
+
+if(section==="players"){
+loadAdminPlayers();
+}
+
+}
+
+adminPanelButton.addEventListener("click",()=>{
+closeAuth();
+openAdminPanel();
+});
+
+adminClose.addEventListener("click",closeAdminPanel);
+
+adminModal.addEventListener("click",event=>{
+if(event.target===adminModal){
+closeAdminPanel();
+}
+});
+
+document.querySelectorAll(".admin-tab").forEach(button=>{
+button.addEventListener("click",()=>{
+showAdminSection(button.dataset.adminSection);
+});
+});
+
+
+/* ADMIN USERS */
+
+async function loadAdminUsers(){
+
+adminUsersList.innerHTML="<div class='admin-note'>Loading users...</div>";
+
 try{
-const data=await apiRequest("/api/auth/me",{method:"GET"});
+
+const data=await apiRequest("/api/users");
+
+const users=
+Array.isArray(data)
+?data
+:data?.users||[];
+
+if(!users.length){
+adminUsersList.innerHTML=
+"<div class='admin-note'>No users found.</div>";
+return;
+}
+
+adminUsersList.innerHTML=users.map(user=>{
+
+const role=normalizeRole(user);
+
+const userId=
+user.id||
+user._id||
+user.userId||
+user.minecraftUsername;
+
+const canChangeRoles=isAdmin(currentAccount);
+
+return `
+<div class="admin-user">
+
+<div class="admin-user-main">
+
+<div class="admin-user-name">
+${escapeHTML(
+user.minecraftUsername||
+user.username||
+"Unknown"
+)}
+</div>
+
+<div class="admin-user-discord">
+${escapeHTML(
+user.discordUsername||
+"No Discord username"
+)}
+</div>
+
+</div>
+
+<div class="admin-user-role">
+
+<select
+class="admin-role-select"
+data-user-id="${escapeHTML(userId)}"
+${canChangeRoles?"":"disabled"}
+>
+
+<option value="user" ${role==="user"?"selected":""}>User</option>
+<option value="tester" ${role==="tester"?"selected":""}>Tester</option>
+<option value="moderator" ${role==="moderator"?"selected":""}>Moderator</option>
+<option value="admin" ${role==="admin"?"selected":""}>Admin</option>
+
+</select>
+
+</div>
+
+</div>
+`;
+
+}).join("");
+
+adminUsersList
+.querySelectorAll(".admin-role-select")
+.forEach(select=>{
+
+select.addEventListener("change",async()=>{
+await changeUserRole(
+select.dataset.userId,
+select.value
+);
+});
+
+});
+
+}catch(error){
+
+adminUsersList.innerHTML=
+`<div class="admin-error">${escapeHTML(error.message)}</div>`;
+
+}
+
+}
+
+
+/* CHANGE ROLE */
+
+async function changeUserRole(userId,role){
+
+if(!isAdmin(currentAccount)){
+alert("Only admins can change user roles.");
+await loadAdminUsers();
+return;
+}
+
+try{
+
+await apiRequest(
+`/api/users/${encodeURIComponent(userId)}/role`,
+{
+method:"PATCH",
+body:JSON.stringify({
+role
+})
+}
+);
+
+await loadAdminUsers();
+
+}catch(error){
+
+alert(
+error.message||
+"Unable to change user role."
+);
+
+await loadAdminUsers();
+
+}
+
+}
+
+
+/* ADMIN PLAYERS */
+
+async function loadAdminPlayers(){
+
+adminPlayersList.innerHTML=
+"<div class='admin-note'>Loading players...</div>";
+
+try{
+
+const data=await apiRequest("/api/players");
+
+const players=
+Array.isArray(data)
+?data
+:data?.players||[];
+
+if(!players.length){
+
+adminPlayersList.innerHTML=
+"<div class='admin-note'>No players found.</div>";
+
+return;
+}
+
+adminPlayersList.innerHTML=players.map(player=>{
+
+const name=
+player.n||
+player.minecraftUsername||
+player.name||
+"Unknown";
+
+const region=
+player.r||
+player.region||
+"Unknown";
+
+const tier=
+player.t||
+player.tier||
+"Unranked";
+
+return `
+<div class="admin-player">
+
+<div class="admin-player-name">
+${escapeHTML(name)}
+</div>
+
+<div class="admin-player-meta">
+Region: ${escapeHTML(region)}
+&nbsp; • &nbsp;
+Overall: ${escapeHTML(tier)}
+</div>
+
+</div>
+`;
+
+}).join("");
+
+}catch(error){
+
+adminPlayersList.innerHTML=
+`<div class="admin-error">${escapeHTML(error.message)}</div>`;
+
+}
+
+}
+
+
+/* ACCOUNT RESTORE */
+
+async function restoreAccount(){
+
+try{
+
+const data=await apiRequest(
+"/api/auth/me",
+{method:"GET"}
+);
+
 const user=getAccountFromResponse(data);
 
 if(user){
@@ -973,17 +1551,24 @@ updateAuthUI(user);
 }else{
 updateAuthUI(null);
 }
+
 }catch(error){
+
 updateAuthUI(null);
+
 }
+
 }
+
+
+/* START */
 
 updateAuthUI(null);
 restoreAccount();
 
-
 render();
 load();
+
 </script>
 </body>
 </html>
