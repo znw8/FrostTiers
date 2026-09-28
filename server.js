@@ -1,1827 +1,1392 @@
-// FrostTiers server. No dependencies. Run: node server.js
-
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const { URL } = require("url");
 
 const PORT = process.env.PORT || 3000;
-const DBF = path.join(__dirname, 'data.json');
+const HOST = "0.0.0.0";
 
-const PUB = fs.existsSync(path.join(__dirname, 'public'))
-  ? path.join(__dirname, 'public')
-  : __dirname;
+const DATA_FILE = path.join(__dirname, "data.json");
+const CONFIG_FILE = path.join(__dirname, "config.json");
 
-const FILES = new Set([
-  'index.html',
-  'app.js',
-  'extra.css',
-  'logo.jpg',
-  'logo.jpeg',
-  'logo.png',
-  'delete.html'
-]);
-
-let cfg = {};
-
-try {
-  cfg = JSON.parse(
-    fs.readFileSync(
-      path.join(__dirname, 'config.json'),
-      'utf8'
-    )
-  );
-} catch {}
-
-const HOOK =
-  process.env.DISCORD_WEBHOOK_URL ??
-  cfg.discordWebhook ??
-  '';
-
-let db = {
-  users: [],
-  sessions: {},
-  players: {},
-  tests: []
-};
-
-try {
-  db = Object.assign(
-    db,
-    JSON.parse(
-      fs.readFileSync(DBF, 'utf8')
-    )
-  );
-} catch {}
-
-const save = () => {
-  fs.writeFileSync(
-    DBF + '.tmp',
-    JSON.stringify(db, null, 2)
-  );
-
-  fs.renameSync(
-    DBF + '.tmp',
-    DBF
-  );
-};
-
-const MODES = {
-  vanilla: 'Vanilla',
-  uhc: 'UHC',
-  pot: 'Pot',
-  nethop: 'NethOP',
-  smp: 'SMP',
-  sword: 'Sword',
-  axe: 'Axe',
-  mace: 'Mace'
-};
-
-const TI = [
-  'HT1',
-  'LT1',
-  'HT2',
-  'LT2',
-  'HT3',
-  'LT3',
-  'HT4',
-  'LT4',
-  'HT5',
-  'LT5'
+const MODES = [
+  "vanilla",
+  "uhc",
+  "pot",
+  "nethop",
+  "smp",
+  "sword",
+  "axe",
+  "mace"
 ];
 
-const PTS = [
-  60,
-  45,
-  30,
-  20,
-  10,
-  6,
-  4,
-  2,
-  1,
-  0
+const TIERS = [
+  "HT1",
+  "LT1",
+  "HT2",
+  "LT2",
+  "HT3",
+  "LT3",
+  "HT4",
+  "LT4",
+  "HT5",
+  "LT5"
 ];
 
-const REG = {
-  NA: 'North America',
-  EU: 'Europe',
-  AS: 'Asia',
-  OC: 'Oceania',
-  SA: 'South America',
-  AF: 'Africa'
+const TIER_POINTS = {
+  HT1: 60,
+  LT1: 45,
+  HT2: 30,
+  LT2: 20,
+  HT3: 10,
+  LT3: 6,
+  HT4: 4,
+  LT4: 2,
+  HT5: 1,
+  LT5: 0
 };
 
-const full = i =>
-  (i % 2 ? 'Low' : 'High') +
-  ' Tier ' +
-  (Math.floor(i / 2) + 1);
+const VALID_ROLES = ["user", "tester", "moderator", "admin"];
 
-const title = p =>
-  p >= 400 ? 'Combat Grandmaster' :
-  p >= 250 ? 'Combat Master' :
-  p >= 100 ? 'Combat Ace' :
-  p >= 50 ? 'Combat Cadet' :
-  p >= 10 ? 'Combat Novice' :
-  'Combat Rookie';
+function defaultData() {
+  return {
+    users: [],
+    sessions: {},
+    players: {},
+    tests: []
+  };
+}
 
-const NAME = /^[A-Za-z0-9_]{3,16}$/;
-
-const hashPw = (
-  pw,
-  salt = crypto.randomBytes(16).toString('hex')
-) => ({
-  salt,
-  hash: crypto
-    .scryptSync(pw, salt, 64)
-    .toString('hex')
-});
-
-const okPw = (pw, u) => {
+function loadData() {
   try {
-    const a = Buffer.from(
-      crypto
-        .scryptSync(pw, u.salt, 64)
-        .toString('hex')
-    );
+    if (!fs.existsSync(DATA_FILE)) {
+      const fresh = defaultData();
+      fs.writeFileSync(DATA_FILE, JSON.stringify(fresh, null, 2));
+      return fresh;
+    }
 
-    const b = Buffer.from(u.hash);
+    const parsed = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
 
-    return (
-      a.length === b.length &&
-      crypto.timingSafeEqual(a, b)
-    );
-  } catch {
-    return false;
+    return {
+      users: Array.isArray(parsed.users) ? parsed.users : [],
+      sessions: parsed.sessions && typeof parsed.sessions === "object"
+        ? parsed.sessions
+        : {},
+      players: parsed.players && typeof parsed.players === "object"
+        ? parsed.players
+        : {},
+      tests: Array.isArray(parsed.tests) ? parsed.tests : []
+    };
+  } catch (error) {
+    console.error("Failed to load data.json:", error);
+    return defaultData();
   }
-};
+}
 
-const sha = t =>
-  crypto
-    .createHash('sha256')
-    .update(t)
-    .digest('hex');
+let data = loadData();
 
-const cookies = r =>
-  Object.fromEntries(
-    (r.headers.cookie || '')
-      .split(';')
-      .map(c => c.trim().split('='))
-      .filter(c => c[0])
+function saveData() {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+function loadConfig() {
+  try {
+    if (!fs.existsSync(CONFIG_FILE)) return {};
+
+    return JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+const config = loadConfig();
+
+const DISCORD_WEBHOOK_URL =
+  process.env.DISCORD_WEBHOOK_URL ||
+  config.discordWebhook ||
+  "";
+
+function sendJSON(res, status, body, extraHeaders = {}) {
+  const payload = JSON.stringify(body);
+
+  res.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Content-Length": Buffer.byteLength(payload),
+    "Access-Control-Allow-Origin": res.reqOrigin || "*",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
+    ...extraHeaders
+  });
+
+  res.end(payload);
+}
+
+function sendText(res, status, text, contentType = "text/plain") {
+  res.writeHead(status, {
+    "Content-Type": `${contentType}; charset=utf-8`,
+    "Access-Control-Allow-Origin": res.reqOrigin || "*",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS"
+  });
+
+  res.end(text);
+}
+
+function error(res, status, message) {
+  sendJSON(res, status, {
+    error: message,
+    message
+  });
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+
+    req.on("data", chunk => {
+      body += chunk;
+
+      if (body.length > 2 * 1024 * 1024) {
+        reject(new Error("Request body too large"));
+        req.destroy();
+      }
+    });
+
+    req.on("end", () => {
+      if (!body) {
+        resolve({});
+        return;
+      }
+
+      try {
+        resolve(JSON.parse(body));
+      } catch {
+        reject(new Error("Invalid JSON"));
+      }
+    });
+
+    req.on("error", reject);
+  });
+}
+
+function hashPassword(password, salt) {
+  return crypto
+    .scryptSync(password, salt, 64)
+    .toString("hex");
+}
+
+function createPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+
+  return {
+    salt,
+    hash: hashPassword(password, salt)
+  };
+}
+
+function verifyPassword(password, user) {
+  if (!user || !user.salt || !user.hash) return false;
+
+  const hash = hashPassword(password, user.salt);
+
+  return crypto.timingSafeEqual(
+    Buffer.from(hash, "hex"),
+    Buffer.from(user.hash, "hex")
   );
+}
 
-const userOf = r => {
-  const token = cookies(r).sid;
+function createSession(userId) {
+  const token = crypto.randomBytes(48).toString("hex");
+
+  data.sessions[token] = {
+    uid: userId,
+    exp: Date.now() + 30 * 24 * 60 * 60 * 1000
+  };
+
+  saveData();
+
+  return token;
+}
+
+function parseCookies(req) {
+  const cookies = {};
+
+  const header = req.headers.cookie || "";
+
+  header.split(";").forEach(part => {
+    const index = part.indexOf("=");
+
+    if (index === -1) return;
+
+    const key = part.slice(0, index).trim();
+    const value = part.slice(index + 1).trim();
+
+    cookies[key] = decodeURIComponent(value);
+  });
+
+  return cookies;
+}
+
+function getCurrentUser(req) {
+  const cookies = parseCookies(req);
+  const token = cookies.session;
 
   if (!token) return null;
 
-  const key = sha(token);
-  const session = db.sessions[key];
+  const session = data.sessions[token];
 
   if (!session) return null;
 
   if (session.exp < Date.now()) {
-    delete db.sessions[key];
-    save();
+    delete data.sessions[token];
+    saveData();
     return null;
   }
 
-  return (
-    db.users.find(
-      u => u.id === session.uid
-    ) || null
-  );
-};
-
-const pub = u => ({
-  id: u.id,
-  username: u.username,
-  minecraftUsername:
-    u.minecraftUsername || u.username,
-  discordUsername:
-    u.discordUsername || '',
-  role: u.role,
-  created: u.created
-});
-
-const playerInfo = pl => {
-  const tiers = pl.tiers || {};
-
-  const points =
-    Object.values(tiers).reduce(
-      (sum, i) =>
-        sum + (
-          Number.isInteger(i)
-            ? PTS[i] || 0
-            : 0
-        ),
-      0
-    );
-
-  return {
-    name: pl.name,
-    region: pl.region,
-    tiers,
-    pts: points,
-    title: title(points)
-  };
-};
-
-const hits = new Map();
-
-const limited = ip => {
-  const now = Date.now();
-
-  const h = (hits.get(ip) || [])
-    .filter(
-      t => now - t < 600000
-    );
-
-  h.push(now);
-  hits.set(ip, h);
-
-  return h.length > 15;
-};
-
-function send(
-  res,
-  code,
-  obj,
-  extra = {}
-) {
-  res.writeHead(
-    code,
-    {
-      'content-type':
-        'application/json',
-      'cache-control':
-        'no-store',
-      ...extra
-    }
-  );
-
-  res.end(
-    JSON.stringify(obj)
-  );
+  return data.users.find(user => user.id === session.uid) || null;
 }
 
-const body = r =>
-  new Promise(
-    (resolve, reject) => {
-      let s = '';
-
-      r.on('data', c => {
-        s += c;
-
-        if (s.length > 20000) {
-          reject(
-            new Error(
-              'Request too large'
-            )
-          );
-
-          r.destroy();
-        }
-      });
-
-      r.on('end', () => {
-        try {
-          resolve(
-            JSON.parse(
-              s || '{}'
-            )
-          );
-        } catch {
-          reject(
-            new Error(
-              'Invalid JSON'
-            )
-          );
-        }
-      });
-    }
-  );
-
-function startSession(
-  req,
-  res,
-  u
-) {
-  const token =
-    crypto
-      .randomBytes(32)
-      .toString('hex');
-
-  db.sessions[sha(token)] = {
-    uid: u.id,
-    exp:
-      Date.now() +
-      30 * 864e5
-  };
-
-  save();
+function publicUser(user) {
+  if (!user) return null;
 
   return {
-    'set-cookie':
-      `sid=${token}; ` +
-      `HttpOnly; ` +
-      `SameSite=None; ` +
-      `Path=/; ` +
-      `Max-Age=${30 * 86400}; ` +
-      `Secure`
+    id: user.id,
+    username: user.username,
+    discordUsername: user.discordUsername || "",
+    role: user.role || "user",
+    created: user.created
   };
 }
 
-async function postHook(
-  t,
-  by
-) {
-  if (!HOOK) return false;
+function normalizeUsername(username) {
+  return String(username || "").trim().toLowerCase();
+}
 
-  const ds =
-    new Date(t.at)
-      .toLocaleString(
-        'en-US',
-        {
-          month: 'numeric',
-          day: 'numeric',
-          year: '2-digit',
-          hour: 'numeric',
-          minute: '2-digit',
-          timeZone: 'UTC'
-        }
-      );
+function normalizeMode(mode) {
+  return String(mode || "").trim().toLowerCase();
+}
 
-  const tierIndex =
-    TI.indexOf(t.tier);
+function tierIndex(tier) {
+  return TIERS.indexOf(String(tier || "").toUpperCase());
+}
 
-  const embed = {
-    title:
-      `${t.player} — Test Results`,
+function getPlayer(username) {
+  return data.players[normalizeUsername(username)] || null;
+}
 
-    color: 0xC0392B,
+function playerPoints(player) {
+  if (!player || !player.tiers) return 0;
 
-    thumbnail: {
-      url:
-        `https://mc-heads.net/avatar/` +
-        `${encodeURIComponent(t.player)}/128`
-    },
+  return MODES.reduce((total, mode) => {
+    const tier = player.tiers[mode];
 
-    fields: [
-      {
-        name: 'Tester',
-        value: '@' + by
-      },
-      {
-        name: 'Gamemode',
-        value:
-          MODES[t.mode] ||
-          t.mode
-      },
-      {
-        name: 'Region',
-        value:
-          REG[t.region] ||
-          t.region
-      },
-      {
-        name: 'Username',
-        value: t.player
-      },
-      {
-        name: 'Previous Rank',
-        value: t.previous
-      },
-      {
-        name: 'Rank Earned',
-        value:
-          tierIndex >= 0
-            ? full(tierIndex)
-            : t.tier
-      }
-    ],
+    if (typeof tier !== "number") return total;
 
-    footer: {
-      text:
-        `Test ID: ${t.id} | ${ds} UTC`
-    }
+    const tierName = TIERS[tier];
+
+    return total + (TIER_POINTS[tierName] || 0);
+  }, 0);
+}
+
+function playerInfo(player) {
+  if (!player) return null;
+
+  return {
+    name: player.name,
+    region: player.region || "NA",
+    tiers: player.tiers || {},
+    points: playerPoints(player)
   };
+}
+
+function roleRank(role) {
+  return {
+    user: 0,
+    tester: 1,
+    moderator: 2,
+    admin: 3
+  }[role] ?? 0;
+}
+
+function isStaff(user) {
+  return !!user && ["tester", "moderator", "admin"].includes(user.role);
+}
+
+function canRank(user) {
+  return !!user && ["tester", "moderator", "admin"].includes(user.role);
+}
+
+function isAdmin(user) {
+  return !!user && user.role === "admin";
+}
+
+function isModeratorOrHigher(user) {
+  return !!user && ["moderator", "admin"].includes(user.role);
+}
+
+function requireStaff(req, res) {
+  const user = getCurrentUser(req);
+
+  if (!user) {
+    error(res, 401, "You must be logged in.");
+    return null;
+  }
+
+  if (!isStaff(user)) {
+    error(res, 403, "Staff access required.");
+    return null;
+  }
+
+  return user;
+}
+
+function requireRankPermission(req, res) {
+  const user = getCurrentUser(req);
+
+  if (!user) {
+    error(res, 401, "You must be logged in.");
+    return null;
+  }
+
+  if (!canRank(user)) {
+    error(res, 403, "You do not have permission to rank players.");
+    return null;
+  }
+
+  return user;
+}
+
+function requireAdmin(req, res) {
+  const user = getCurrentUser(req);
+
+  if (!user) {
+    error(res, 401, "You must be logged in.");
+    return null;
+  }
+
+  if (!isAdmin(user)) {
+    error(res, 403, "Admins only.");
+    return null;
+  }
+
+  return user;
+}
+
+async function sendDiscordTest(test) {
+  if (!DISCORD_WEBHOOK_URL) return;
 
   try {
-    const r =
-      await fetch(
-        HOOK,
-        {
-          method: 'POST',
-          headers: {
-            'content-type':
-              'application/json'
-          },
-          body:
-            JSON.stringify({
-              embeds: [embed]
-            })
-        }
-      );
+    const player = getPlayer(test.player);
 
-    return r.ok;
-  } catch {
-    return false;
+    const content = [
+      `**FrostTiers Test Result**`,
+      ``,
+      `**Player:** ${test.player}`,
+      `**Gamemode:** ${test.mode}`,
+      `**Tier:** ${test.tier}`,
+      `**Region:** ${test.region}`,
+      `**Previous:** ${test.previous || "Unranked"}`,
+      `**Tester:** ${test.by}`,
+      `**Points:** ${playerPoints(player)}`
+    ].join("\n");
+
+    const response = await fetch(DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        content
+      })
+    });
+
+    if (!response.ok) {
+      console.error(
+        "Discord webhook returned",
+        response.status,
+        await response.text()
+      );
+    }
+  } catch (err) {
+    console.error("Discord webhook error:", err);
   }
 }
 
-const need = (
-  u,
-  ...roles
-) =>
-  !!u &&
-  roles.includes(u.role);
+function setSessionCookie(token) {
+  return `session=${encodeURIComponent(token)}; Max-Age=2592000; Path=/; HttpOnly; Secure; SameSite=None`;
+}
 
-async function api(
-  req,
-  res,
-  url
-) {
-  const m = req.method;
-  const p = url.pathname;
-  const u = userOf(req);
+function clearSessionCookie() {
+  return "session=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None";
+}
 
-  if (
-    m !== 'GET' &&
-    m !== 'OPTIONS' &&
-    !(req.headers['content-type'] || '')
-      .includes(
-        'application/json'
-      )
-  ) {
-    return send(
-      res,
-      415,
-      {
-        error:
-          'JSON required'
-      }
-    );
+function safeUsername(value) {
+  return /^[A-Za-z0-9_]{1,16}$/.test(String(value || ""));
+}
+
+function generateId(prefix = "") {
+  return (
+    prefix +
+    Date.now().toString(36) +
+    crypto.randomBytes(5).toString("hex")
+  );
+}
+
+async function handleAPI(req, res, pathname) {
+  /*
+   * AUTH
+   */
+
+  if (req.method === "GET" && pathname === "/api/me") {
+    const user = getCurrentUser(req);
+
+    sendJSON(res, 200, {
+      user: publicUser(user)
+    });
+
+    return true;
   }
 
-  let b = {};
+  if (req.method === "GET" && pathname === "/api/auth/me") {
+    const user = getCurrentUser(req);
 
-  if (m !== 'GET') {
+    sendJSON(res, 200, {
+      user: publicUser(user)
+    });
+
+    return true;
+  }
+
+  if (
+    req.method === "POST" &&
+    (pathname === "/api/auth/signup" || pathname === "/api/register")
+  ) {
     try {
-      b = await body(req);
-    } catch (e) {
-      return send(
-        res,
-        400,
-        {
-          error:
-            e.message ||
-            'Invalid request'
-        }
-      );
-    }
-  }
+      const body = await readBody(req);
 
-  const ip =
-    req.socket.remoteAddress;
-
-  // ------------------------------------------
-  // PUBLIC PLAYERS
-  // ------------------------------------------
-
-  if (
-    p === '/api/players' &&
-    m === 'GET'
-  ) {
-    const list =
-      Object.values(
-        db.players
-      )
-        .map(playerInfo)
-        .sort(
-          (a, b) =>
-            b.pts - a.pts
-        );
-
-    return send(
-      res,
-      200,
-      list
-    );
-  }
-
-  // ------------------------------------------
-  // AUTH
-  // ------------------------------------------
-
-  if (
-    p === '/api/auth/me' &&
-    m === 'GET'
-  ) {
-    return send(
-      res,
-      200,
-      {
-        user:
-          u ? pub(u) : null
-      }
-    );
-  }
-
-  if (
-    p === '/api/auth/signup' &&
-    m === 'POST'
-  ) {
-    if (limited(ip)) {
-      return send(
-        res,
-        429,
-        {
-          error:
-            'Too many attempts. Try again later.'
-        }
-      );
-    }
-
-    const minecraftUsername =
-      String(
-        b.minecraftUsername || ''
+      const minecraftUsername = String(
+        body.minecraftUsername ||
+        body.username ||
+        ""
       ).trim();
 
-    const discordUsername =
-      String(
-        b.discordUsername || ''
+      const discordUsername = String(
+        body.discordUsername ||
+        body.discord ||
+        ""
       ).trim();
 
-    const password =
-      String(
-        b.password || ''
+      const password = String(body.password || "");
+      const confirmPassword = String(
+        body.confirmPassword ||
+        body.confirm ||
+        ""
       );
 
-    const confirmPassword =
-      String(
-        b.confirmPassword || ''
-      );
-
-    if (
-      !NAME.test(
-        minecraftUsername
-      )
-    ) {
-      return send(
-        res,
-        400,
-        {
-          error:
-            'Minecraft username must be 3-16 letters, numbers or underscores.'
-        }
-      );
-    }
-
-    if (
-      discordUsername.length < 2 ||
-      discordUsername.length > 100
-    ) {
-      return send(
-        res,
-        400,
-        {
-          error:
-            'Enter a valid Discord username.'
-        }
-      );
-    }
-
-    if (
-      password.length < 8
-    ) {
-      return send(
-        res,
-        400,
-        {
-          error:
-            'Password must be at least 8 characters.'
-        }
-      );
-    }
-
-    if (
-      confirmPassword &&
-      password !== confirmPassword
-    ) {
-      return send(
-        res,
-        400,
-        {
-          error:
-            'Passwords do not match.'
-        }
-      );
-    }
-
-    if (
-      db.users.some(
-        x =>
-          x.username
-            .toLowerCase() ===
-          minecraftUsername
-            .toLowerCase()
-      )
-    ) {
-      return send(
-        res,
-        409,
-        {
-          error:
-            'That Minecraft username already has an account.'
-        }
-      );
-    }
-
-    const nu = {
-      id:
-        crypto
-          .randomBytes(8)
-          .toString('hex'),
-
-      username:
-        minecraftUsername,
-
-      discordUsername,
-
-      ...hashPw(password),
-
-      role:
-        db.users.length
-          ? 'user'
-          : 'admin',
-
-      created:
-        Date.now()
-    };
-
-    db.users.push(nu);
-    save();
-
-    return send(
-      res,
-      200,
-      {
-        user: pub(nu)
-      },
-      startSession(
-        req,
-        res,
-        nu
-      )
-    );
-  }
-
-  if (
-    p === '/api/auth/login' &&
-    m === 'POST'
-  ) {
-    if (limited(ip)) {
-      return send(
-        res,
-        429,
-        {
-          error:
-            'Too many attempts. Try again later.'
-        }
-      );
-    }
-
-    const minecraftUsername =
-      String(
-        b.minecraftUsername || ''
-      ).trim();
-
-    const password =
-      String(
-        b.password || ''
-      );
-
-    const account =
-      db.users.find(
-        v =>
-          v.username
-            .toLowerCase() ===
-          minecraftUsername
-            .toLowerCase()
-      );
-
-    if (
-      !account ||
-      !okPw(
-        password,
-        account
-      )
-    ) {
-      return send(
-        res,
-        401,
-        {
-          error:
-            'Wrong Minecraft username or password.'
-        }
-      );
-    }
-
-    return send(
-      res,
-      200,
-      {
-        user:
-          pub(account)
-      },
-      startSession(
-        req,
-        res,
-        account
-      )
-    );
-  }
-
-  if (
-    p === '/api/auth/logout' &&
-    m === 'POST'
-  ) {
-    const token =
-      cookies(req).sid;
-
-    if (token) {
-      delete db.sessions[
-        sha(token)
-      ];
-
-      save();
-    }
-
-    return send(
-      res,
-      200,
-      {
-        ok: true
-      },
-      {
-        'set-cookie':
-          'sid=; HttpOnly; SameSite=None; Path=/; Max-Age=0; Secure'
-      }
-    );
-  }
-
-  if (
-    p === '/api/me' &&
-    m === 'GET'
-  ) {
-    return send(
-      res,
-      200,
-      {
-        user:
-          u ? pub(u) : null
-      }
-    );
-  }
-
-  // ------------------------------------------
-  // TESTS
-  // ------------------------------------------
-
-  if (
-    p === '/api/tests' &&
-    m === 'GET'
-  ) {
-    if (
-      !need(
-        u,
-        'tester',
-        'admin'
-      )
-    ) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Not allowed.'
-        }
-      );
-    }
-
-    return send(
-      res,
-      200,
-      db.tests
-        .slice()
-        .reverse()
-    );
-  }
-
-  if (
-    p === '/api/tests' &&
-    m === 'POST'
-  ) {
-    if (
-      !need(
-        u,
-        'tester',
-        'admin'
-      )
-    ) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Only testers can submit results.'
-        }
-      );
-    }
-
-    const player =
-      String(
-        b.player || ''
-      ).trim();
-
-    const region =
-      b.region;
-
-    const mode =
-      b.mode;
-
-    const ti =
-      TI.indexOf(
-        b.tier
-      );
-
-    if (
-      !NAME.test(player)
-    ) {
-      return send(
-        res,
-        400,
-        {
-          error:
-            'Enter a valid Minecraft username.'
-        }
-      );
-    }
-
-    if (
-      !REG[region] ||
-      !MODES[mode] ||
-      ti < 0
-    ) {
-      return send(
-        res,
-        400,
-        {
-          error:
-            'Pick a region, gamemode and tier.'
-        }
-      );
-    }
-
-    const k =
-      player.toLowerCase();
-
-    const pl =
-      db.players[k] ||
-      (db.players[k] = {
-        name: player,
-        region,
-        tiers: {}
-      });
-
-    const prev =
-      pl.tiers[mode] == null
-        ? 'Unranked'
-        : full(
-            pl.tiers[mode]
-          );
-
-    pl.name = player;
-    pl.region = region;
-    pl.tiers[mode] = ti;
-
-    const t = {
-      id:
-        crypto
-          .randomBytes(12)
-          .toString('hex'),
-
-      player,
-      region,
-      mode,
-      tier: TI[ti],
-      previous: prev,
-      by: u.username,
-      at: Date.now()
-    };
-
-    db.tests.push(t);
-
-    if (
-      db.tests.length > 500
-    ) {
-      db.tests.shift();
-    }
-
-    save();
-
-    const webhook =
-      await postHook(
-        t,
-        u.username
-      );
-
-    return send(
-      res,
-      200,
-      {
-        ok: true,
-        id: t.id,
-        webhook
-      }
-    );
-  }
-
-  // ------------------------------------------
-  // ADMIN DASHBOARD
-  // ------------------------------------------
-
-  if (
-    p === '/api/admin/dashboard' &&
-    m === 'GET'
-  ) {
-    if (!need(u, 'admin')) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Admins only.'
-        }
-      );
-    }
-
-    const users =
-      db.users.length;
-
-    const admins =
-      db.users.filter(
-        x =>
-          x.role === 'admin'
-      ).length;
-
-    const testers =
-      db.users.filter(
-        x =>
-          x.role === 'tester'
-      ).length;
-
-    const players =
-      Object.keys(
-        db.players
-      ).length;
-
-    const tests =
-      db.tests.length;
-
-    const recentTests =
-      db.tests
-        .slice()
-        .reverse()
-        .slice(0, 10);
-
-    return send(
-      res,
-      200,
-      {
-        stats: {
-          users,
-          admins,
-          testers,
-          players,
-          tests
-        },
-        recentTests
-      }
-    );
-  }
-
-  // ------------------------------------------
-  // ADMIN PLAYERS
-  // ------------------------------------------
-
-  if (
-    p === '/api/admin/players' &&
-    m === 'GET'
-  ) {
-    if (!need(u, 'admin')) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Admins only.'
-        }
-      );
-    }
-
-    const players =
-      Object.values(
-        db.players
-      )
-        .map(playerInfo)
-        .sort(
-          (a, b) =>
-            b.pts - a.pts
-        );
-
-    return send(
-      res,
-      200,
-      players
-    );
-  }
-
-  if (
-    p.startsWith(
-      '/api/admin/players/'
-    ) &&
-    m === 'PATCH'
-  ) {
-    if (!need(u, 'admin')) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Admins only.'
-        }
-      );
-    }
-
-    const id =
-      decodeURIComponent(
-        p.slice(
-          '/api/admin/players/'
-            .length
-        )
-      );
-
-    const key =
-      id.toLowerCase();
-
-    const player =
-      db.players[key];
-
-    if (!player) {
-      return send(
-        res,
-        404,
-        {
-          error:
-            'Player not found.'
-        }
-      );
-    }
-
-    if (
-      b.region &&
-      !REG[b.region]
-    ) {
-      return send(
-        res,
-        400,
-        {
-          error:
-            'Invalid region.'
-        }
-      );
-    }
-
-    if (b.region) {
-      player.region =
-        b.region;
-    }
-
-    if (b.tiers) {
-      for (
-        const mode of Object.keys(
-          MODES
-        )
-      ) {
-        if (
-          b.tiers[mode] ===
-          null ||
-          b.tiers[mode] ===
-          undefined ||
-          b.tiers[mode] === ''
-        ) {
-          continue;
-        }
-
-        const value =
-          Number(
-            b.tiers[mode]
-          );
-
-        if (
-          Number.isInteger(value) &&
-          value >= 0 &&
-          value < TI.length
-        ) {
-          player.tiers[mode] =
-            value;
-        }
-      }
-    }
-
-    save();
-
-    return send(
-      res,
-      200,
-      {
-        ok: true,
-        player:
-          playerInfo(player)
-      }
-    );
-  }
-
-  if (
-    p.startsWith(
-      '/api/admin/players/'
-    ) &&
-    m === 'DELETE'
-  ) {
-    if (!need(u, 'admin')) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Admins only.'
-        }
-      );
-    }
-
-    const id =
-      decodeURIComponent(
-        p.slice(
-          '/api/admin/players/'
-            .length
-        )
-      );
-
-    const key =
-      id.toLowerCase();
-
-    if (!db.players[key]) {
-      return send(
-        res,
-        404,
-        {
-          error:
-            'Player not found.'
-        }
-      );
-    }
-
-    delete db.players[key];
-
-    save();
-
-    return send(
-      res,
-      200,
-      {
-        ok: true
-      }
-    );
-  }
-
-  // ------------------------------------------
-  // ADMIN TESTS
-  // ------------------------------------------
-
-  if (
-    p === '/api/admin/tests' &&
-    m === 'GET'
-  ) {
-    if (!need(u, 'admin')) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Admins only.'
-        }
-      );
-    }
-
-    return send(
-      res,
-      200,
-      db.tests
-        .slice()
-        .reverse()
-    );
-  }
-
-  if (
-    p.startsWith(
-      '/api/admin/tests/'
-    ) &&
-    m === 'DELETE'
-  ) {
-    if (!need(u, 'admin')) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Admins only.'
-        }
-      );
-    }
-
-    const id =
-      decodeURIComponent(
-        p.slice(
-          '/api/admin/tests/'
-            .length
-        )
-      );
-
-    const index =
-      db.tests.findIndex(
-        t => t.id === id
-      );
-
-    if (index === -1) {
-      return send(
-        res,
-        404,
-        {
-          error:
-            'Test not found.'
-        }
-      );
-    }
-
-    db.tests.splice(
-      index,
-      1
-    );
-
-    save();
-
-    return send(
-      res,
-      200,
-      {
-        ok: true
-      }
-    );
-  }
-
-  // ------------------------------------------
-  // ADMIN USERS
-  // ------------------------------------------
-
-  if (
-    p.startsWith(
-      '/api/users'
-    )
-  ) {
-    if (!need(u, 'admin')) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Admins only.'
-        }
-      );
-    }
-
-    const id =
-      p.split('/')[3];
-
-    if (
-      !id &&
-      m === 'GET'
-    ) {
-      return send(
-        res,
-        200,
-        db.users.map(pub)
-      );
-    }
-
-    if (
-      !id &&
-      m === 'POST'
-    ) {
-      const name =
-        String(
-          b.username || ''
-        ).trim();
-
-      const discordUsername =
-        String(
-          b.discordUsername || ''
-        ).trim();
-
-      const pw =
-        String(
-          b.password || ''
-        );
-
-      if (
-        !NAME.test(name) ||
-        pw.length < 8 ||
-        ![
-          'user',
-          'tester',
-          'admin'
-        ].includes(b.role)
-      ) {
-        return send(
+      if (!safeUsername(minecraftUsername)) {
+        error(
           res,
           400,
-          {
-            error:
-              'Need a valid Minecraft username, an 8+ character password and a valid role.'
-          }
+          "Minecraft username must be 1-16 characters and contain only letters, numbers, or underscores."
         );
+        return true;
       }
 
-      if (
-        db.users.some(
-          x =>
-            x.username
-              .toLowerCase() ===
-            name.toLowerCase()
-        )
-      ) {
-        return send(
-          res,
-          409,
-          {
-            error:
-              'That Minecraft username is taken.'
-          }
-        );
+      if (!discordUsername) {
+        error(res, 400, "Discord username is required.");
+        return true;
       }
 
-      const nu = {
-        id:
-          crypto
-            .randomBytes(8)
-            .toString('hex'),
+      if (password.length < 6) {
+        error(res, 400, "Password must be at least 6 characters.");
+        return true;
+      }
 
-        username: name,
+      if (password !== confirmPassword) {
+        error(res, 400, "Passwords do not match.");
+        return true;
+      }
 
+      const exists = data.users.some(
+        user =>
+          user.username.toLowerCase() ===
+          minecraftUsername.toLowerCase()
+      );
+
+      if (exists) {
+        error(res, 409, "That Minecraft username already has an account.");
+        return true;
+      }
+
+      const credentials = createPassword(password);
+
+      const user = {
+        id: generateId("user_"),
+        username: minecraftUsername,
         discordUsername,
+        salt: credentials.salt,
+        hash: credentials.hash,
 
-        ...hashPw(pw),
+        /*
+         * First account is automatically admin.
+         * Everyone else starts as a normal user.
+         */
+        role: data.users.length === 0 ? "admin" : "user",
 
-        role: b.role,
-
-        created:
-          Date.now()
+        created: new Date().toISOString()
       };
 
-      db.users.push(nu);
-      save();
+      data.users.push(user);
 
-      return send(
+      const token = createSession(user.id);
+
+      sendJSON(
         res,
-        200,
+        201,
         {
-          user: pub(nu)
-        }
-      );
-    }
-
-    const target =
-      db.users.find(
-        x => x.id === id
-      );
-
-    if (!target) {
-      return send(
-        res,
-        404,
+          user: publicUser(user)
+        },
         {
-          error:
-            'User not found.'
+          "Set-Cookie": setSessionCookie(token)
         }
       );
-    }
 
-    const admins =
-      db.users.filter(
-        x =>
-          x.role === 'admin'
-      ).length;
-
-    if (
-      m === 'PATCH'
-    ) {
-      if (
-        ![
-          'user',
-          'tester',
-          'admin'
-        ].includes(b.role)
-      ) {
-        return send(
-          res,
-          400,
-          {
-            error:
-              'Bad role.'
-          }
-        );
-      }
-
-      if (
-        target.role ===
-          'admin' &&
-        b.role !== 'admin' &&
-        admins < 2
-      ) {
-        return send(
-          res,
-          400,
-          {
-            error:
-              'There must always be one admin.'
-          }
-        );
-      }
-
-      target.role =
-        b.role;
-
-      save();
-
-      return send(
-        res,
-        200,
-        {
-          user:
-            pub(target)
-        }
-      );
-    }
-
-    if (
-      m === 'DELETE'
-    ) {
-      if (
-        target.role ===
-          'admin' &&
-        admins < 2
-      ) {
-        return send(
-          res,
-          400,
-          {
-            error:
-              'There must always be one admin.'
-          }
-        );
-      }
-
-      db.users =
-        db.users.filter(
-          x =>
-            x.id !== id
-        );
-
-      for (
-        const [
-          k,
-          s
-        ] of Object.entries(
-          db.sessions
-        )
-      ) {
-        if (
-          s.uid === id
-        ) {
-          delete db.sessions[k];
-        }
-      }
-
-      save();
-
-      return send(
-        res,
-        200,
-        {
-          ok: true
-        }
-      );
+      return true;
+    } catch (err) {
+      error(res, 400, err.message || "Could not create account.");
+      return true;
     }
   }
 
-  // ------------------------------------------
-  // TEMPORARY ACCOUNT DELETE
-  // ------------------------------------------
-
   if (
-    p ===
-      '/api/temp-delete-account' &&
-    m === 'POST'
+    req.method === "POST" &&
+    (pathname === "/api/auth/login" || pathname === "/api/login")
   ) {
-    const resetKey =
-      String(
-        b.resetKey || ''
-      );
+    try {
+      const body = await readBody(req);
 
-    const minecraftUsername =
-      String(
-        b.minecraftUsername ||
-          ''
+      const username = String(
+        body.username ||
+        body.minecraftUsername ||
+        ""
       ).trim();
 
-    if (
-      !process.env.RESET_KEY ||
-      resetKey !==
-        process.env.RESET_KEY
-    ) {
-      return send(
-        res,
-        403,
-        {
-          error:
-            'Invalid reset key.'
-        }
-      );
-    }
+      const password = String(body.password || "");
 
-    const account =
-      db.users.find(
-        v =>
-          v.username
-            .toLowerCase() ===
-          minecraftUsername
-            .toLowerCase()
+      const user = data.users.find(
+        candidate =>
+          candidate.username.toLowerCase() === username.toLowerCase()
       );
 
-    if (!account) {
-      return send(
-        res,
-        404,
-        {
-          error:
-            'Account not found.'
-        }
-      );
-    }
-
-    db.users =
-      db.users.filter(
-        v =>
-          v.id !==
-          account.id
-      );
-
-    for (
-      const [
-        k,
-        s
-      ] of Object.entries(
-        db.sessions
-      )
-    ) {
-      if (
-        s.uid ===
-        account.id
-      ) {
-        delete db.sessions[k];
+      if (!user || !verifyPassword(password, user)) {
+        error(res, 401, "Invalid username or password.");
+        return true;
       }
+
+      const token = createSession(user.id);
+
+      sendJSON(
+        res,
+        200,
+        {
+          user: publicUser(user)
+        },
+        {
+          "Set-Cookie": setSessionCookie(token)
+        }
+      );
+
+      return true;
+    } catch (err) {
+      error(res, 400, err.message || "Could not log in.");
+      return true;
+    }
+  }
+
+  if (
+    req.method === "POST" &&
+    pathname === "/api/auth/logout"
+  ) {
+    const cookies = parseCookies(req);
+
+    if (cookies.session) {
+      delete data.sessions[cookies.session];
+      saveData();
     }
 
-    save();
-
-    return send(
+    sendJSON(
       res,
       200,
       {
-        ok: true,
-        message:
-          'Account deleted successfully.'
+        ok: true
+      },
+      {
+        "Set-Cookie": clearSessionCookie()
       }
     );
+
+    return true;
   }
 
-  return send(
-    res,
-    404,
-    {
-      error:
-        'Not found'
-    }
-  );
-}
+  /*
+   * PUBLIC PLAYERS
+   */
 
-// ------------------------------------------
-// STATIC FILES
-// ------------------------------------------
+  if (req.method === "GET" && pathname === "/api/players") {
+    const players = Object.values(data.players)
+      .map(playerInfo)
+      .sort((a, b) => b.points - a.points);
 
-const MIME = {
-  '.html':
-    'text/html; charset=utf-8',
+    sendJSON(res, 200, {
+      players
+    });
 
-  '.js':
-    'text/javascript',
+    return true;
+  }
 
-  '.css':
-    'text/css',
+  /*
+   * TESTS
+   *
+   * Test submission is allowed for:
+   * admin / moderator / tester
+   */
 
-  '.jpg':
-    'image/jpeg',
+  if (req.method === "GET" && pathname === "/api/tests") {
+    sendJSON(res, 200, {
+      tests: [...data.tests].reverse()
+    });
 
-  '.jpeg':
-    'image/jpeg',
+    return true;
+  }
 
-  '.png':
-    'image/png',
+  if (req.method === "POST" && pathname === "/api/tests") {
+    const user = requireRankPermission(req, res);
 
-  '.svg':
-    'image/svg+xml'
-};
+    if (!user) return true;
 
-const server =
-  http.createServer(
-    async (
-      req,
-      res
-    ) => {
+    try {
+      const body = await readBody(req);
 
-      // GitHub Pages -> Render API
-      res.setHeader(
-        'access-control-allow-origin',
-        'https://frosttiers.xyz'
-      );
+      const playerName = String(
+        body.player ||
+        body.username ||
+        body.minecraftUsername ||
+        ""
+      ).trim();
 
-      res.setHeader(
-        'access-control-allow-credentials',
-        'true'
-      );
+      const mode = normalizeMode(body.mode);
+      const tier = String(body.tier || "").toUpperCase();
+      const region = String(body.region || "").toUpperCase();
 
-      res.setHeader(
-        'access-control-allow-headers',
-        'Content-Type'
-      );
-
-      res.setHeader(
-        'access-control-allow-methods',
-        'GET, POST, PATCH, DELETE, OPTIONS'
-      );
-
-      if (
-        req.method ===
-        'OPTIONS'
-      ) {
-        res.writeHead(
-          204
-        );
-
-        return res.end();
+      if (!safeUsername(playerName)) {
+        error(res, 400, "Invalid Minecraft username.");
+        return true;
       }
 
-      res.setHeader(
-        'x-content-type-options',
-        'nosniff'
-      );
+      if (!MODES.includes(mode)) {
+        error(res, 400, "Invalid gamemode.");
+        return true;
+      }
 
-      res.setHeader(
-        'referrer-policy',
-        'same-origin'
-      );
+      if (!TIERS.includes(tier)) {
+        error(res, 400, "Invalid tier.");
+        return true;
+      }
 
-      res.setHeader(
-        'content-security-policy',
-        "default-src 'self'; " +
-        "img-src 'self' https://mc-heads.net data:; " +
-        "style-src 'self' 'unsafe-inline'; " +
-        "script-src 'self' 'unsafe-inline'; " +
-        "frame-ancestors 'none'"
-      );
+      if (!["NA", "EU", "AS", "OC"].includes(region)) {
+        error(res, 400, "Invalid region.");
+        return true;
+      }
 
-      const url =
-        new URL(
-          req.url,
-          'http://x'
-        );
+      const key = normalizeUsername(playerName);
+
+      let player = data.players[key];
+
+      if (!player) {
+        player = {
+          name: playerName,
+          region,
+          tiers: {}
+        };
+
+        data.players[key] = player;
+      }
+
+      player.name = playerName;
+      player.region = region;
+
+      const previousIndex =
+        typeof player.tiers[mode] === "number"
+          ? player.tiers[mode]
+          : null;
+
+      const previous =
+        previousIndex === null
+          ? "Unranked"
+          : TIERS[previousIndex];
+
+      player.tiers[mode] = tierIndex(tier);
+
+      const test = {
+        id: generateId("test_"),
+        player: playerName,
+        region,
+        mode,
+        tier,
+        previous,
+        by: user.username,
+        at: new Date().toISOString()
+      };
+
+      data.tests.push(test);
+
+      saveData();
+
+      sendJSON(res, 201, {
+        ok: true,
+        test,
+        player: playerInfo(player)
+      });
+
+      sendDiscordTest(test);
+
+      return true;
+    } catch (err) {
+      error(res, 400, err.message || "Could not submit test.");
+      return true;
+    }
+  }
+
+  /*
+   * ADMIN DASHBOARD
+   */
+
+  if (
+    req.method === "GET" &&
+    pathname === "/api/admin/dashboard"
+  ) {
+    const user = requireStaff(req, res);
+
+    if (!user) return true;
+
+    const testers = data.users.filter(
+      u => ["tester", "moderator", "admin"].includes(u.role)
+    ).length;
+
+    const admins = data.users.filter(
+      u => u.role === "admin"
+    ).length;
+
+    sendJSON(res, 200, {
+      stats: {
+        users: data.users.length,
+        admins,
+        testers,
+        players: Object.keys(data.players).length,
+        tests: data.tests.length
+      },
+
+      recentTests: [...data.tests]
+        .reverse()
+        .slice(0, 10)
+    });
+
+    return true;
+  }
+
+  /*
+   * ADMIN / STAFF PLAYERS
+   */
+
+  if (
+    req.method === "GET" &&
+    pathname === "/api/admin/players"
+  ) {
+    const user = requireStaff(req, res);
+
+    if (!user) return true;
+
+    sendJSON(res, 200, {
+      players: Object.values(data.players)
+        .map(playerInfo)
+        .sort((a, b) => b.points - a.points)
+    });
+
+    return true;
+  }
+
+  const playerMatch = pathname.match(
+    /^\/api\/admin\/players\/([^/]+)$/
+  );
+
+  if (playerMatch) {
+    const username = decodeURIComponent(playerMatch[1]);
+    const key = normalizeUsername(username);
+
+    if (req.method === "PATCH") {
+      const user = requireRankPermission(req, res);
+
+      if (!user) return true;
 
       try {
-        if (
-          url.pathname.startsWith(
-            '/api/'
-          )
-        ) {
-          return await api(
-            req,
-            res,
-            url
-          );
+        const body = await readBody(req);
+
+        let player = data.players[key];
+
+        if (!player) {
+          player = {
+            name: username,
+            region: "NA",
+            tiers: {}
+          };
+
+          data.players[key] = player;
         }
 
-        const name =
-          url.pathname === '/'
-            ? 'index.html'
-            : url.pathname.slice(1);
+        if (body.region !== undefined) {
+          const region = String(body.region).toUpperCase();
 
-        let f =
-          FILES.has(name)
-            ? path.join(
-                PUB,
-                name
-              )
-            : null;
-
-        if (
-          f &&
-          name === 'logo.jpg' &&
-          !fs.existsSync(f)
-        ) {
-          f =
-            path.join(
-              PUB,
-              'logo.jpeg'
-            );
-        }
-
-        if (
-          !f ||
-          !fs.existsSync(f)
-        ) {
-          res.writeHead(
-            404
-          );
-
-          return res.end(
-            'Not found'
-          );
-        }
-
-        res.writeHead(
-          200,
-          {
-            'content-type':
-              MIME[
-                path.extname(f)
-              ] ||
-              'application/octet-stream'
+          if (!["NA", "EU", "AS", "OC"].includes(region)) {
+            error(res, 400, "Invalid region.");
+            return true;
           }
-        );
 
-        fs.createReadStream(f)
-          .pipe(res);
-
-      } catch (e) {
-        if (
-          !res.headersSent
-        ) {
-          send(
-            res,
-            400,
-            {
-              error:
-                e.message ||
-                'Bad request'
-            }
-          );
-        } else {
-          res.end();
+          player.region = region;
         }
+
+        if (body.tiers && typeof body.tiers === "object") {
+          for (const mode of MODES) {
+            if (body.tiers[mode] === undefined) continue;
+
+            const value = body.tiers[mode];
+
+            let index;
+
+            if (typeof value === "number") {
+              index = value;
+            } else {
+              index = tierIndex(value);
+            }
+
+            if (
+              !Number.isInteger(index) ||
+              index < 0 ||
+              index >= TIERS.length
+            ) {
+              error(res, 400, `Invalid tier for ${mode}.`);
+              return true;
+            }
+
+            player.tiers[mode] = index;
+          }
+        }
+
+        saveData();
+
+        sendJSON(res, 200, {
+          ok: true,
+          player: playerInfo(player)
+        });
+
+        return true;
+      } catch (err) {
+        error(res, 400, err.message || "Could not update player.");
+        return true;
       }
     }
+
+    if (req.method === "DELETE") {
+      const user = requireModeratorOrHigher(req, res);
+
+      if (!user) return true;
+
+      if (!data.players[key]) {
+        error(res, 404, "Player not found.");
+        return true;
+      }
+
+      delete data.players[key];
+
+      saveData();
+
+      sendJSON(res, 200, {
+        ok: true
+      });
+
+      return true;
+    }
+  }
+
+  /*
+   * ADMIN TEST MANAGEMENT
+   */
+
+  if (
+    req.method === "GET" &&
+    pathname === "/api/admin/tests"
+  ) {
+    const user = requireStaff(req, res);
+
+    if (!user) return true;
+
+    sendJSON(res, 200, {
+      tests: [...data.tests].reverse()
+    });
+
+    return true;
+  }
+
+  const testMatch = pathname.match(
+    /^\/api\/admin\/tests\/([^/]+)$/
   );
 
-server.listen(
-  PORT,
-  () =>
-    console.log(
-      'FrostTiers running on port ' +
-      PORT +
-      (
-        HOOK
-          ? ''
-          : ' (no Discord webhook set)'
-      )
-    )
-);
+  if (testMatch && req.method === "DELETE") {
+    const user = requireModeratorOrHigher(req, res);
+
+    if (!user) return true;
+
+    const id = decodeURIComponent(testMatch[1]);
+
+    const index = data.tests.findIndex(
+      test => String(test.id) === String(id)
+    );
+
+    if (index === -1) {
+      error(res, 404, "Test not found.");
+      return true;
+    }
+
+    data.tests.splice(index, 1);
+
+    saveData();
+
+    sendJSON(res, 200, {
+      ok: true
+    });
+
+    return true;
+  }
+
+  /*
+   * ADMIN ACCOUNT MANAGEMENT
+   */
+
+  if (req.method === "GET" && pathname === "/api/users") {
+    const user = requireAdmin(req, res);
+
+    if (!user) return true;
+
+    sendJSON(res, 200, {
+      users: data.users.map(publicUser)
+    });
+
+    return true;
+  }
+
+  if (req.method === "POST" && pathname === "/api/users") {
+    const admin = requireAdmin(req, res);
+
+    if (!admin) return true;
+
+    try {
+      const body = await readBody(req);
+
+      const username = String(
+        body.username ||
+        body.minecraftUsername ||
+        ""
+      ).trim();
+
+      const discordUsername = String(
+        body.discordUsername ||
+        body.discord ||
+        ""
+      ).trim();
+
+      const password = String(body.password || "");
+      const role = String(body.role || "user").toLowerCase();
+
+      if (!safeUsername(username)) {
+        error(res, 400, "Invalid Minecraft username.");
+        return true;
+      }
+
+      if (!discordUsername) {
+        error(res, 400, "Discord username is required.");
+        return true;
+      }
+
+      if (password.length < 6) {
+        error(res, 400, "Password must be at least 6 characters.");
+        return true;
+      }
+
+      if (!VALID_ROLES.includes(role)) {
+        error(res, 400, "Invalid role.");
+        return true;
+      }
+
+      const exists = data.users.some(
+        candidate =>
+          candidate.username.toLowerCase() ===
+          username.toLowerCase()
+      );
+
+      if (exists) {
+        error(res, 409, "That account already exists.");
+        return true;
+      }
+
+      const credentials = createPassword(password);
+
+      const user = {
+        id: generateId("user_"),
+        username,
+        discordUsername,
+        salt: credentials.salt,
+        hash: credentials.hash,
+        role,
+        created: new Date().toISOString()
+      };
+
+      data.users.push(user);
+
+      saveData();
+
+      sendJSON(res, 201, {
+        user: publicUser(user)
+      });
+
+      return true;
+    } catch (err) {
+      error(res, 400, err.message || "Could not create account.");
+      return true;
+    }
+  }
+
+  const userMatch = pathname.match(
+    /^\/api\/users\/([^/]+)$/
+  );
+
+  if (userMatch) {
+    const admin = requireAdmin(req, res);
+
+    if (!admin) return true;
+
+    const id = decodeURIComponent(userMatch[1]);
+
+    const target = data.users.find(
+      user => String(user.id) === String(id)
+    );
+
+    if (!target) {
+      error(res, 404, "User not found.");
+      return true;
+    }
+
+    if (req.method === "PATCH") {
+      try {
+        const body = await readBody(req);
+
+        if (body.role !== undefined) {
+          const role = String(body.role).toLowerCase();
+
+          if (!VALID_ROLES.includes(role)) {
+            error(res, 400, "Invalid role.");
+            return true;
+          }
+
+          /*
+           * Never allow the last admin to be removed.
+           */
+          if (
+            target.role === "admin" &&
+            role !== "admin"
+          ) {
+            const adminCount = data.users.filter(
+              user => user.role === "admin"
+            ).length;
+
+            if (adminCount <= 1) {
+              error(
+                res,
+                400,
+                "There must always be at least one admin."
+              );
+              return true;
+            }
+          }
+
+          target.role = role;
+        }
+
+        if (body.discordUsername !== undefined) {
+          target.discordUsername = String(
+            body.discordUsername
+          ).trim();
+        }
+
+        if (body.password !== undefined) {
+          const password = String(body.password);
+
+          if (password.length < 6) {
+            error(
+              res,
+              400,
+              "Password must be at least 6 characters."
+            );
+            return true;
+          }
+
+          const credentials = createPassword(password);
+
+          target.salt = credentials.salt;
+          target.hash = credentials.hash;
+        }
+
+        saveData();
+
+        sendJSON(res, 200, {
+          user: publicUser(target)
+        });
+
+        return true;
+      } catch (err) {
+        error(res, 400, err.message || "Could not update user.");
+        return true;
+      }
+    }
+
+    if (req.method === "DELETE") {
+      if (target.id === admin.id) {
+        error(res, 400, "You cannot delete your own account here.");
+        return true;
+      }
+
+      if (target.role === "admin") {
+        const adminCount = data.users.filter(
+          user => user.role === "admin"
+        ).length;
+
+        if (adminCount <= 1) {
+          error(
+            res,
+            400,
+            "There must always be at least one admin."
+          );
+          return true;
+        }
+      }
+
+      data.users = data.users.filter(
+        user => user.id !== target.id
+      );
+
+      for (const [token, session] of Object.entries(data.sessions)) {
+        if (session.uid === target.id) {
+          delete data.sessions[token];
+        }
+      }
+
+      saveData();
+
+      sendJSON(res, 200, {
+        ok: true
+      });
+
+      return true;
+    }
+  }
+
+  /*
+   * TEMP ACCOUNT DELETE
+   */
+
+  if (
+    req.method === "POST" &&
+    pathname === "/api/temp-delete-account"
+  ) {
+    const user = getCurrentUser(req);
+
+    if (!user) {
+      error(res, 401, "You must be logged in.");
+      return true;
+    }
+
+    if (user.role === "admin") {
+      const adminCount = data.users.filter(
+        candidate => candidate.role === "admin"
+      ).length;
+
+      if (adminCount <= 1) {
+        error(
+          res,
+          400,
+          "The last admin account cannot be deleted."
+        );
+        return true;
+      }
+    }
+
+    data.users = data.users.filter(
+      candidate => candidate.id !== user.id
+    );
+
+    for (const [token, session] of Object.entries(data.sessions)) {
+      if (session.uid === user.id) {
+        delete data.sessions[token];
+      }
+    }
+
+    saveData();
+
+    sendJSON(
+      res,
+      200,
+      {
+        ok: true
+      },
+      {
+        "Set-Cookie": clearSessionCookie()
+      }
+    );
+
+    return true;
+  }
+
+  return false;
+}
+
+function serveStatic(req, res, pathname) {
+  let filePath;
+
+  if (pathname === "/") {
+    filePath = path.join(__dirname, "index.html");
+  } else {
+    const clean = pathname.replace(/^\/+/, "");
+
+    filePath = path.join(__dirname, clean);
+  }
+
+  /*
+   * Prevent ../ traversal.
+   */
+  const resolved = path.resolve(filePath);
+  const root = path.resolve(__dirname);
+
+  if (!resolved.startsWith(root)) {
+    sendText(res, 403, "Forbidden");
+    return;
+  }
+
+  if (!fs.existsSync(resolved)) {
+    sendText(res, 404, "Not found");
+    return;
+  }
+
+  const stat = fs.statSync(resolved);
+
+  if (!stat.isFile()) {
+    sendText(res, 404, "Not found");
+    return;
+  }
+
+  const ext = path.extname(resolved).toLowerCase();
+
+  const types = {
+    ".html": "text/html",
+    ".css": "text/css",
+    ".js": "application/javascript",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon"
+  };
+
+  res.writeHead(200, {
+    "Content-Type": `${types[ext] || "application/octet-stream"}; charset=utf-8",
+    "Cache-Control": ext === ".html"
+      ? "no-cache"
+      : "public, max-age=3600"
+  });
+
+  fs.createReadStream(resolved).pipe(res);
+}
+
+const server = http.createServer(async (req, res) => {
+  /*
+   * Security headers.
+   */
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+
+  /*
+   * CORS.
+   */
+  const origin = req.headers.origin;
+
+  const allowedOrigins = [
+    "https://frosttiers.xyz",
+    "https://www.frosttiers.xyz",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+  ];
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.reqOrigin = origin;
+  } else {
+    res.reqOrigin = "https://frosttiers.xyz";
+  }
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, {
+      "Access-Control-Allow-Origin": res.reqOrigin,
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS"
+    });
+
+    res.end();
+    return;
+  }
+
+  try {
+    const parsed = new URL(
+      req.url,
+      `http://${req.headers.host || "localhost"}`
+    );
+
+    const pathname = parsed.pathname;
+
+    if (pathname.startsWith("/api/")) {
+      const handled = await handleAPI(req, res, pathname);
+
+      if (handled) return;
+
+      error(res, 404, "API endpoint not found.");
+      return;
+    }
+
+    serveStatic(req, res, pathname);
+  } catch (err) {
+    console.error("Server error:", err);
+
+    if (!res.headersSent) {
+      error(res, 500, "Internal server error.");
+    }
+  }
+});
+
+server.listen(PORT, HOST, () => {
+  console.log(`FrostTiers server running on ${HOST}:${PORT}`);
+  console.log(`Players: ${Object.keys(data.players).length}`);
+  console.log(`Users: ${data.users.length}`);
+  console.log(`Tests: ${data.tests.length}`);
+});
