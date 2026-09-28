@@ -306,7 +306,7 @@ function startSession(req, res, u) {
     'set-cookie':
       `sid=${token}; ` +
       `HttpOnly; ` +
-      `SameSite=Lax; ` +
+      `SameSite=None; ` +
       `Path=/; ` +
       `Max-Age=${30 * 86400}` +
       secure
@@ -709,7 +709,7 @@ async function api(req, res, url) {
       },
       {
         'set-cookie':
-          'sid=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'
+          'sid=; HttpOnly; SameSite=None; Path=/; Max-Age=0; Secure'
       }
     );
   }
@@ -1106,6 +1106,31 @@ const MIME = {
 const server =
   http.createServer(
     async (req, res) => {
+
+      res.setHeader(
+        'access-control-allow-origin',
+        'https://frosttiers.xyz'
+      );
+
+      res.setHeader(
+        'access-control-allow-credentials',
+        'true'
+      );
+
+      res.setHeader(
+        'access-control-allow-headers',
+        'Content-Type'
+      );
+
+      res.setHeader(
+        'access-control-allow-methods',
+        'GET, POST, PATCH, DELETE, OPTIONS'
+      );
+
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        return res.end();
+      }
 
       res.setHeader(
         'x-content-type-options',
