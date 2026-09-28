@@ -20,10 +20,6 @@ const FILES = new Set([
   'logo.png'
 ]);
 
-// --------------------------------------------------
-// CONFIG
-// --------------------------------------------------
-
 let cfg = {};
 
 try {
@@ -36,11 +32,6 @@ const HOOK =
   process.env.DISCORD_WEBHOOK_URL ??
   cfg.discordWebhook ??
   '';
-
-
-// --------------------------------------------------
-// DATABASE
-// --------------------------------------------------
 
 let db = {
   users: [],
@@ -67,11 +58,6 @@ const save = () => {
     DBF
   );
 };
-
-
-// --------------------------------------------------
-// MINECRAFT / TIER DATA
-// --------------------------------------------------
 
 const MODES = {
   vanilla: 'Vanilla',
@@ -134,11 +120,6 @@ const title = p =>
 
 const NAME = /^[A-Za-z0-9_]{3,16}$/;
 
-
-// --------------------------------------------------
-// PASSWORD SECURITY
-// --------------------------------------------------
-
 const hashPw = (
   pw,
   salt = crypto.randomBytes(16).toString('hex')
@@ -165,11 +146,6 @@ const okPw = (pw, u) => {
     return false;
   }
 };
-
-
-// --------------------------------------------------
-// SESSION SECURITY
-// --------------------------------------------------
 
 const sha = t =>
   crypto
@@ -205,11 +181,6 @@ const userOf = r => {
   ) || null;
 };
 
-
-// --------------------------------------------------
-// PUBLIC USER DATA
-// --------------------------------------------------
-
 const pub = u => ({
   id: u.id,
   username: u.username,
@@ -218,11 +189,6 @@ const pub = u => ({
   role: u.role,
   created: u.created
 });
-
-
-// --------------------------------------------------
-// RATE LIMITING
-// --------------------------------------------------
 
 const hits = new Map();
 
@@ -238,11 +204,6 @@ const limited = ip => {
 
   return h.length > 15;
 };
-
-
-// --------------------------------------------------
-// HTTP HELPERS
-// --------------------------------------------------
 
 function send(res, code, obj, extra = {}) {
   res.writeHead(code, {
@@ -276,11 +237,6 @@ const body = r =>
     });
   });
 
-
-// --------------------------------------------------
-// SESSION CREATION
-// --------------------------------------------------
-
 function startSession(req, res, u) {
   const token = crypto
     .randomBytes(32)
@@ -293,30 +249,16 @@ function startSession(req, res, u) {
 
   save();
 
-  const forwardedProto =
-    req.headers['x-forwarded-proto'];
-
-  const secure =
-    forwardedProto === 'https' ||
-    process.env.NODE_ENV === 'production'
-      ? '; Secure'
-      : '';
-
   return {
     'set-cookie':
       `sid=${token}; ` +
       `HttpOnly; ` +
       `SameSite=None; ` +
       `Path=/; ` +
-      `Max-Age=${30 * 86400}` +
-      secure
+      `Max-Age=${30 * 86400}; ` +
+      `Secure`
   };
 }
-
-
-// --------------------------------------------------
-// DISCORD RESULTS WEBHOOK
-// --------------------------------------------------
 
 async function postHook(t, by) {
   if (!HOOK) return false;
@@ -398,18 +340,8 @@ async function postHook(t, by) {
   }
 }
 
-
-// --------------------------------------------------
-// PERMISSIONS
-// --------------------------------------------------
-
 const need = (u, ...roles) =>
   !!u && roles.includes(u.role);
-
-
-// --------------------------------------------------
-// API
-// --------------------------------------------------
 
 async function api(req, res, url) {
   const m = req.method;
@@ -432,11 +364,6 @@ async function api(req, res, url) {
       : await body(req);
 
   const ip = req.socket.remoteAddress;
-
-
-// --------------------------------------------------
-// PLAYER RANKINGS
-// --------------------------------------------------
 
   if (
     p === '/api/players' &&
@@ -468,12 +395,6 @@ async function api(req, res, url) {
     return send(res, 200, list);
   }
 
-
-// --------------------------------------------------
-// NEW ACCOUNT SYSTEM
-// --------------------------------------------------
-
-  // GET /api/auth/me
   if (
     p === '/api/auth/me' &&
     m === 'GET'
@@ -483,8 +404,6 @@ async function api(req, res, url) {
     });
   }
 
-
-  // POST /api/auth/signup
   if (
     p === '/api/auth/signup' &&
     m === 'POST'
@@ -497,25 +416,16 @@ async function api(req, res, url) {
     }
 
     const minecraftUsername =
-      String(
-        b.minecraftUsername || ''
-      ).trim();
+      String(b.minecraftUsername || '').trim();
 
     const discordUsername =
-      String(
-        b.discordUsername || ''
-      ).trim();
+      String(b.discordUsername || '').trim();
 
     const password =
-      String(
-        b.password || ''
-      );
+      String(b.password || '');
 
     const confirmPassword =
-      String(
-        b.confirmPassword || ''
-      );
-
+      String(b.confirmPassword || '');
 
     if (
       !/^[A-Za-z0-9_]{3,16}$/
@@ -527,7 +437,6 @@ async function api(req, res, url) {
       });
     }
 
-
     if (
       discordUsername.length < 2 ||
       discordUsername.length > 100
@@ -538,14 +447,12 @@ async function api(req, res, url) {
       });
     }
 
-
     if (password.length < 8) {
       return send(res, 400, {
         error:
           'Password must be at least 8 characters.'
       });
     }
-
 
     if (
       confirmPassword &&
@@ -556,7 +463,6 @@ async function api(req, res, url) {
           'Passwords do not match.'
       });
     }
-
 
     if (
       db.users.some(
@@ -571,11 +477,6 @@ async function api(req, res, url) {
       });
     }
 
-
-    const hashed =
-      hashPw(password);
-
-
     const nu = {
       id:
         crypto
@@ -587,10 +488,8 @@ async function api(req, res, url) {
 
       discordUsername,
 
-      ...hashed,
+      ...hashPw(password),
 
-      // First account becomes admin.
-      // Every account after that starts as a normal user.
       role:
         db.users.length
           ? 'user'
@@ -600,10 +499,8 @@ async function api(req, res, url) {
         Date.now()
     };
 
-
     db.users.push(nu);
     save();
-
 
     return send(
       res,
@@ -619,12 +516,6 @@ async function api(req, res, url) {
     );
   }
 
-
-// --------------------------------------------------
-// LOGIN
-// --------------------------------------------------
-
-  // POST /api/auth/login
   if (
     p === '/api/auth/login' &&
     m === 'POST'
@@ -637,15 +528,10 @@ async function api(req, res, url) {
     }
 
     const minecraftUsername =
-      String(
-        b.minecraftUsername || ''
-      ).trim();
+      String(b.minecraftUsername || '').trim();
 
     const password =
-      String(
-        b.password || ''
-      );
-
+      String(b.password || '');
 
     const account =
       db.users.find(
@@ -653,7 +539,6 @@ async function api(req, res, url) {
           v.username.toLowerCase() ===
           minecraftUsername.toLowerCase()
       );
-
 
     if (
       !account ||
@@ -664,7 +549,6 @@ async function api(req, res, url) {
           'Wrong Minecraft username or password.'
       });
     }
-
 
     return send(
       res,
@@ -680,12 +564,6 @@ async function api(req, res, url) {
     );
   }
 
-
-// --------------------------------------------------
-// LOGOUT
-// --------------------------------------------------
-
-  // POST /api/auth/logout
   if (
     p === '/api/auth/logout' &&
     m === 'POST'
@@ -694,10 +572,7 @@ async function api(req, res, url) {
       cookies(req).sid;
 
     if (token) {
-      delete db.sessions[
-        sha(token)
-      ];
-
+      delete db.sessions[sha(token)];
       save();
     }
 
@@ -714,12 +589,6 @@ async function api(req, res, url) {
     );
   }
 
-
-// --------------------------------------------------
-// OLD API ALIASES
-// --------------------------------------------------
-
-  // These keep older code from breaking.
   if (
     p === '/api/me' &&
     m === 'GET'
@@ -728,11 +597,6 @@ async function api(req, res, url) {
       user: u ? pub(u) : null
     });
   }
-
-
-// --------------------------------------------------
-// TEST RESULTS
-// --------------------------------------------------
 
   if (
     p === '/api/tests' &&
@@ -747,12 +611,9 @@ async function api(req, res, url) {
     return send(
       res,
       200,
-      db.tests
-        .slice(-30)
-        .reverse()
+      db.tests.slice(-30).reverse()
     );
   }
-
 
   if (
     p === '/api/tests' &&
@@ -766,14 +627,11 @@ async function api(req, res, url) {
     }
 
     const player =
-      String(
-        b.player || ''
-      ).trim();
+      String(b.player || '').trim();
 
     const region = b.region;
     const mode = b.mode;
     const ti = TI.indexOf(b.tier);
-
 
     if (!NAME.test(player)) {
       return send(res, 400, {
@@ -781,7 +639,6 @@ async function api(req, res, url) {
           'Enter a valid Minecraft username.'
       });
     }
-
 
     if (
       !REG[region] ||
@@ -794,10 +651,7 @@ async function api(req, res, url) {
       });
     }
 
-
-    const k =
-      player.toLowerCase();
-
+    const k = player.toLowerCase();
 
     const pl =
       db.players[k] ||
@@ -807,17 +661,14 @@ async function api(req, res, url) {
         tiers: {}
       });
 
-
     const prev =
       pl.tiers[mode] == null
         ? 'Unranked'
         : full(pl.tiers[mode]);
 
-
     pl.name = player;
     pl.region = region;
     pl.tiers[mode] = ti;
-
 
     const t = {
       id:
@@ -834,7 +685,6 @@ async function api(req, res, url) {
       at: Date.now()
     };
 
-
     db.tests.push(t);
 
     if (db.tests.length > 500) {
@@ -842,7 +692,6 @@ async function api(req, res, url) {
     }
 
     save();
-
 
     return send(
       res,
@@ -859,11 +708,6 @@ async function api(req, res, url) {
     );
   }
 
-
-// --------------------------------------------------
-// ADMIN USER MANAGEMENT
-// --------------------------------------------------
-
   if (
     p.startsWith('/api/users')
   ) {
@@ -873,15 +717,9 @@ async function api(req, res, url) {
       });
     }
 
+    const id = p.split('/')[3];
 
-    const id =
-      p.split('/')[3];
-
-
-    if (
-      !id &&
-      m === 'GET'
-    ) {
+    if (!id && m === 'GET') {
       return send(
         res,
         200,
@@ -889,40 +727,26 @@ async function api(req, res, url) {
       );
     }
 
-
-    if (
-      !id &&
-      m === 'POST'
-    ) {
+    if (!id && m === 'POST') {
       const name =
-        String(
-          b.username || ''
-        ).trim();
+        String(b.username || '').trim();
 
       const discordUsername =
-        String(
-          b.discordUsername || ''
-        ).trim();
+        String(b.discordUsername || '').trim();
 
       const pw =
-        String(
-          b.password || ''
-        );
-
+        String(b.password || '');
 
       if (
-        !/^[A-Za-z0-9_]{3,16}$/
-          .test(name) ||
+        !/^[A-Za-z0-9_]{3,16}$/.test(name) ||
         pw.length < 8 ||
-        !['user', 'tester', 'admin']
-          .includes(b.role)
+        !['user', 'tester', 'admin'].includes(b.role)
       ) {
         return send(res, 400, {
           error:
             'Need a valid Minecraft username, an 8+ character password and a valid role.'
         });
       }
-
 
       if (
         db.users.some(
@@ -936,7 +760,6 @@ async function api(req, res, url) {
             'That Minecraft username is taken.'
         });
       }
-
 
       const nu = {
         id:
@@ -955,10 +778,8 @@ async function api(req, res, url) {
         created: Date.now()
       };
 
-
       db.users.push(nu);
       save();
-
 
       return send(
         res,
@@ -969,12 +790,10 @@ async function api(req, res, url) {
       );
     }
 
-
     const target =
       db.users.find(
         x => x.id === id
       );
-
 
     if (!target) {
       return send(res, 404, {
@@ -982,23 +801,19 @@ async function api(req, res, url) {
       });
     }
 
-
     const admins =
       db.users.filter(
         x => x.role === 'admin'
       ).length;
 
-
     if (m === 'PATCH') {
       if (
-        !['user', 'tester', 'admin']
-          .includes(b.role)
+        !['user', 'tester', 'admin'].includes(b.role)
       ) {
         return send(res, 400, {
           error: 'Bad role.'
         });
       }
-
 
       if (
         target.role === 'admin' &&
@@ -1011,11 +826,8 @@ async function api(req, res, url) {
         });
       }
 
-
       target.role = b.role;
-
       save();
-
 
       return send(
         res,
@@ -1025,7 +837,6 @@ async function api(req, res, url) {
         }
       );
     }
-
 
     if (m === 'DELETE') {
       if (
@@ -1038,12 +849,10 @@ async function api(req, res, url) {
         });
       }
 
-
       db.users =
         db.users.filter(
           x => x.id !== id
         );
-
 
       for (
         const [k, s]
@@ -1054,9 +863,7 @@ async function api(req, res, url) {
         }
       }
 
-
       save();
-
 
       return send(res, 200, {
         ok: true
@@ -1064,44 +871,80 @@ async function api(req, res, url) {
     }
   }
 
+  // --------------------------------------------------
+  // TEMPORARY ACCOUNT DELETE
+  // --------------------------------------------------
+
+  if (
+    p === '/api/temp-delete-account' &&
+    m === 'POST'
+  ) {
+    const resetKey =
+      String(b.resetKey || '');
+
+    const minecraftUsername =
+      String(
+        b.minecraftUsername || ''
+      ).trim();
+
+    if (
+      !process.env.RESET_KEY ||
+      resetKey !== process.env.RESET_KEY
+    ) {
+      return send(res, 403, {
+        error: 'Invalid reset key.'
+      });
+    }
+
+    const account =
+      db.users.find(
+        v =>
+          v.username.toLowerCase() ===
+          minecraftUsername.toLowerCase()
+      );
+
+    if (!account) {
+      return send(res, 404, {
+        error: 'Account not found.'
+      });
+    }
+
+    db.users =
+      db.users.filter(
+        v => v.id !== account.id
+      );
+
+    for (
+      const [k, s]
+      of Object.entries(db.sessions)
+    ) {
+      if (s.uid === account.id) {
+        delete db.sessions[k];
+      }
+    }
+
+    save();
+
+    return send(res, 200, {
+      ok: true,
+      message: 'Account deleted successfully.'
+    });
+  }
 
   return send(res, 404, {
     error: 'Not found'
   });
 }
 
-
-// --------------------------------------------------
-// STATIC FILES
-// --------------------------------------------------
-
 const MIME = {
-  '.html':
-    'text/html; charset=utf-8',
-
-  '.js':
-    'text/javascript',
-
-  '.css':
-    'text/css',
-
-  '.jpg':
-    'image/jpeg',
-
-  '.jpeg':
-    'image/jpeg',
-
-  '.png':
-    'image/png',
-
-  '.svg':
-    'image/svg+xml'
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml'
 };
-
-
-// --------------------------------------------------
-// SERVER
-// --------------------------------------------------
 
 const server =
   http.createServer(
@@ -1151,16 +994,13 @@ const server =
         "frame-ancestors 'none'"
       );
 
-
       const url =
         new URL(
           req.url,
           'http://x'
         );
 
-
       try {
-
         if (
           url.pathname.startsWith('/api/')
         ) {
@@ -1171,18 +1011,15 @@ const server =
           );
         }
 
-
         const name =
           url.pathname === '/'
             ? 'index.html'
             : url.pathname.slice(1);
 
-
         let f =
           FILES.has(name)
             ? path.join(PUB, name)
             : null;
-
 
         if (
           f &&
@@ -1196,17 +1033,13 @@ const server =
             );
         }
 
-
         if (
           !f ||
           !fs.existsSync(f)
         ) {
           res.writeHead(404);
-          return res.end(
-            'Not found'
-          );
+          return res.end('Not found');
         }
-
 
         res.writeHead(
           200,
@@ -1219,12 +1052,10 @@ const server =
           }
         );
 
-
         fs.createReadStream(f)
           .pipe(res);
 
       } catch (e) {
-
         if (!res.headersSent) {
           send(
             res,
@@ -1241,7 +1072,6 @@ const server =
       }
     }
   );
-
 
 server.listen(
   PORT,
