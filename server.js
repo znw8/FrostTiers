@@ -1,4 +1,5 @@
 // FrostTiers server. No dependencies. Run: node server.js
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -17,14 +18,18 @@ const FILES = new Set([
   'extra.css',
   'logo.jpg',
   'logo.jpeg',
-  'logo.png'
+  'logo.png',
+  'delete.html'
 ]);
 
 let cfg = {};
 
 try {
   cfg = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8')
+    fs.readFileSync(
+      path.join(__dirname, 'config.json'),
+      'utf8'
+    )
   );
 } catch {}
 
@@ -43,7 +48,9 @@ let db = {
 try {
   db = Object.assign(
     db,
-    JSON.parse(fs.readFileSync(DBF, 'utf8'))
+    JSON.parse(
+      fs.readFileSync(DBF, 'utf8')
+    )
   );
 } catch {}
 
@@ -133,7 +140,9 @@ const hashPw = (
 const okPw = (pw, u) => {
   try {
     const a = Buffer.from(
-      crypto.scryptSync(pw, u.salt, 64).toString('hex')
+      crypto
+        .scryptSync(pw, u.salt, 64)
+        .toString('hex')
     );
 
     const b = Buffer.from(u.hash);
@@ -166,29 +175,57 @@ const userOf = r => {
 
   if (!token) return null;
 
-  const session = db.sessions[sha(token)];
+  const key = sha(token);
+  const session = db.sessions[key];
 
   if (!session) return null;
 
   if (session.exp < Date.now()) {
-    delete db.sessions[sha(token)];
+    delete db.sessions[key];
     save();
     return null;
   }
 
-  return db.users.find(
-    u => u.id === session.uid
-  ) || null;
+  return (
+    db.users.find(
+      u => u.id === session.uid
+    ) || null
+  );
 };
 
 const pub = u => ({
   id: u.id,
   username: u.username,
-  minecraftUsername: u.username,
-  discordUsername: u.discordUsername || '',
+  minecraftUsername:
+    u.minecraftUsername || u.username,
+  discordUsername:
+    u.discordUsername || '',
   role: u.role,
   created: u.created
 });
+
+const playerInfo = pl => {
+  const tiers = pl.tiers || {};
+
+  const points =
+    Object.values(tiers).reduce(
+      (sum, i) =>
+        sum + (
+          Number.isInteger(i)
+            ? PTS[i] || 0
+            : 0
+        ),
+      0
+    );
+
+  return {
+    name: pl.name,
+    region: pl.region,
+    tiers,
+    pts: points,
+    title: title(points)
+  };
+};
 
 const hits = new Map();
 
@@ -196,55 +233,90 @@ const limited = ip => {
   const now = Date.now();
 
   const h = (hits.get(ip) || [])
-    .filter(t => now - t < 600000);
+    .filter(
+      t => now - t < 600000
+    );
 
   h.push(now);
-
   hits.set(ip, h);
 
   return h.length > 15;
 };
 
-function send(res, code, obj, extra = {}) {
-  res.writeHead(code, {
-    'content-type': 'application/json',
-    'cache-control': 'no-store',
-    ...extra
-  });
+function send(
+  res,
+  code,
+  obj,
+  extra = {}
+) {
+  res.writeHead(
+    code,
+    {
+      'content-type':
+        'application/json',
+      'cache-control':
+        'no-store',
+      ...extra
+    }
+  );
 
-  res.end(JSON.stringify(obj));
+  res.end(
+    JSON.stringify(obj)
+  );
 }
 
 const body = r =>
-  new Promise((resolve, reject) => {
-    let s = '';
+  new Promise(
+    (resolve, reject) => {
+      let s = '';
 
-    r.on('data', c => {
-      s += c;
+      r.on('data', c => {
+        s += c;
 
-      if (s.length > 20000) {
-        reject(new Error('Request too large'));
-        r.destroy();
-      }
-    });
+        if (s.length > 20000) {
+          reject(
+            new Error(
+              'Request too large'
+            )
+          );
 
-    r.on('end', () => {
-      try {
-        resolve(JSON.parse(s || '{}'));
-      } catch {
-        reject(new Error('Invalid JSON'));
-      }
-    });
-  });
+          r.destroy();
+        }
+      });
 
-function startSession(req, res, u) {
-  const token = crypto
-    .randomBytes(32)
-    .toString('hex');
+      r.on('end', () => {
+        try {
+          resolve(
+            JSON.parse(
+              s || '{}'
+            )
+          );
+        } catch {
+          reject(
+            new Error(
+              'Invalid JSON'
+            )
+          );
+        }
+      });
+    }
+  );
+
+function startSession(
+  req,
+  res,
+  u
+) {
+  const token =
+    crypto
+      .randomBytes(32)
+      .toString('hex');
 
   db.sessions[sha(token)] = {
     uid: u.id,
-    exp: Date.now() + 30 * 864e5
+    exp:
+      Date.now() +
+      30 * 864e5
   };
 
   save();
@@ -260,25 +332,33 @@ function startSession(req, res, u) {
   };
 }
 
-async function postHook(t, by) {
+async function postHook(
+  t,
+  by
+) {
   if (!HOOK) return false;
 
-  const ds = new Date(t.at).toLocaleString(
-    'en-US',
-    {
-      month: 'numeric',
-      day: 'numeric',
-      year: '2-digit',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZone: 'UTC'
-    }
-  );
+  const ds =
+    new Date(t.at)
+      .toLocaleString(
+        'en-US',
+        {
+          month: 'numeric',
+          day: 'numeric',
+          year: '2-digit',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZone: 'UTC'
+        }
+      );
 
-  const tierIndex = TI.indexOf(t.tier);
+  const tierIndex =
+    TI.indexOf(t.tier);
 
   const embed = {
-    title: `${t.player} — Test Results`,
+    title:
+      `${t.player} — Test Results`,
+
     color: 0xC0392B,
 
     thumbnail: {
@@ -294,11 +374,15 @@ async function postHook(t, by) {
       },
       {
         name: 'Gamemode',
-        value: MODES[t.mode]
+        value:
+          MODES[t.mode] ||
+          t.mode
       },
       {
         name: 'Region',
-        value: REG[t.region]
+        value:
+          REG[t.region] ||
+          t.region
       },
       {
         name: 'Username',
@@ -324,15 +408,21 @@ async function postHook(t, by) {
   };
 
   try {
-    const r = await fetch(HOOK, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        embeds: [embed]
-      })
-    });
+    const r =
+      await fetch(
+        HOOK,
+        {
+          method: 'POST',
+          headers: {
+            'content-type':
+              'application/json'
+          },
+          body:
+            JSON.stringify({
+              embeds: [embed]
+            })
+        }
+      );
 
     return r.ok;
   } catch {
@@ -340,68 +430,102 @@ async function postHook(t, by) {
   }
 }
 
-const need = (u, ...roles) =>
-  !!u && roles.includes(u.role);
+const need = (
+  u,
+  ...roles
+) =>
+  !!u &&
+  roles.includes(u.role);
 
-async function api(req, res, url) {
+async function api(
+  req,
+  res,
+  url
+) {
   const m = req.method;
   const p = url.pathname;
   const u = userOf(req);
 
   if (
     m !== 'GET' &&
+    m !== 'OPTIONS' &&
     !(req.headers['content-type'] || '')
-      .includes('application/json')
+      .includes(
+        'application/json'
+      )
   ) {
-    return send(res, 415, {
-      error: 'JSON required'
-    });
+    return send(
+      res,
+      415,
+      {
+        error:
+          'JSON required'
+      }
+    );
   }
 
-  const b =
-    m === 'GET'
-      ? {}
-      : await body(req);
+  let b = {};
 
-  const ip = req.socket.remoteAddress;
+  if (m !== 'GET') {
+    try {
+      b = await body(req);
+    } catch (e) {
+      return send(
+        res,
+        400,
+        {
+          error:
+            e.message ||
+            'Invalid request'
+        }
+      );
+    }
+  }
+
+  const ip =
+    req.socket.remoteAddress;
+
+  // ------------------------------------------
+  // PUBLIC PLAYERS
+  // ------------------------------------------
 
   if (
     p === '/api/players' &&
     m === 'GET'
   ) {
-    const list = Object.values(db.players)
-      .map(pl => {
-        const pts =
-          Object.values(pl.tiers)
-            .reduce(
-              (a, i) =>
-                a + (PTS[i] || 0),
-              0
-            );
+    const list =
+      Object.values(
+        db.players
+      )
+        .map(playerInfo)
+        .sort(
+          (a, b) =>
+            b.pts - a.pts
+        );
 
-        return {
-          n: pl.name,
-          r: pl.region,
-          tiers: pl.tiers,
-          pts,
-          t: title(pts)
-        };
-      })
-      .sort(
-        (a, c) =>
-          c.pts - a.pts
-      );
-
-    return send(res, 200, list);
+    return send(
+      res,
+      200,
+      list
+    );
   }
+
+  // ------------------------------------------
+  // AUTH
+  // ------------------------------------------
 
   if (
     p === '/api/auth/me' &&
     m === 'GET'
   ) {
-    return send(res, 200, {
-      user: u ? pub(u) : null
-    });
+    return send(
+      res,
+      200,
+      {
+        user:
+          u ? pub(u) : null
+      }
+    );
   }
 
   if (
@@ -409,72 +533,109 @@ async function api(req, res, url) {
     m === 'POST'
   ) {
     if (limited(ip)) {
-      return send(res, 429, {
-        error:
-          'Too many attempts. Try again later.'
-      });
+      return send(
+        res,
+        429,
+        {
+          error:
+            'Too many attempts. Try again later.'
+        }
+      );
     }
 
     const minecraftUsername =
-      String(b.minecraftUsername || '').trim();
+      String(
+        b.minecraftUsername || ''
+      ).trim();
 
     const discordUsername =
-      String(b.discordUsername || '').trim();
+      String(
+        b.discordUsername || ''
+      ).trim();
 
     const password =
-      String(b.password || '');
+      String(
+        b.password || ''
+      );
 
     const confirmPassword =
-      String(b.confirmPassword || '');
+      String(
+        b.confirmPassword || ''
+      );
 
     if (
-      !/^[A-Za-z0-9_]{3,16}$/
-        .test(minecraftUsername)
+      !NAME.test(
+        minecraftUsername
+      )
     ) {
-      return send(res, 400, {
-        error:
-          'Minecraft username must be 3-16 letters, numbers or underscores.'
-      });
+      return send(
+        res,
+        400,
+        {
+          error:
+            'Minecraft username must be 3-16 letters, numbers or underscores.'
+        }
+      );
     }
 
     if (
       discordUsername.length < 2 ||
       discordUsername.length > 100
     ) {
-      return send(res, 400, {
-        error:
-          'Enter a valid Discord username.'
-      });
+      return send(
+        res,
+        400,
+        {
+          error:
+            'Enter a valid Discord username.'
+        }
+      );
     }
 
-    if (password.length < 8) {
-      return send(res, 400, {
-        error:
-          'Password must be at least 8 characters.'
-      });
+    if (
+      password.length < 8
+    ) {
+      return send(
+        res,
+        400,
+        {
+          error:
+            'Password must be at least 8 characters.'
+        }
+      );
     }
 
     if (
       confirmPassword &&
       password !== confirmPassword
     ) {
-      return send(res, 400, {
-        error:
-          'Passwords do not match.'
-      });
+      return send(
+        res,
+        400,
+        {
+          error:
+            'Passwords do not match.'
+        }
+      );
     }
 
     if (
       db.users.some(
         x =>
-          x.username.toLowerCase() ===
-          minecraftUsername.toLowerCase()
+          x.username
+            .toLowerCase() ===
+          minecraftUsername
+            .toLowerCase()
       )
     ) {
-      return send(res, 409, {
-        error:
-          'That Minecraft username already has an account.'
-      });
+      return send(
+        res,
+        409,
+        {
+          error:
+            'That Minecraft username already has an account.'
+        }
+      );
     }
 
     const nu = {
@@ -521,40 +682,58 @@ async function api(req, res, url) {
     m === 'POST'
   ) {
     if (limited(ip)) {
-      return send(res, 429, {
-        error:
-          'Too many attempts. Try again later.'
-      });
+      return send(
+        res,
+        429,
+        {
+          error:
+            'Too many attempts. Try again later.'
+        }
+      );
     }
 
     const minecraftUsername =
-      String(b.minecraftUsername || '').trim();
+      String(
+        b.minecraftUsername || ''
+      ).trim();
 
     const password =
-      String(b.password || '');
+      String(
+        b.password || ''
+      );
 
     const account =
       db.users.find(
         v =>
-          v.username.toLowerCase() ===
-          minecraftUsername.toLowerCase()
+          v.username
+            .toLowerCase() ===
+          minecraftUsername
+            .toLowerCase()
       );
 
     if (
       !account ||
-      !okPw(password, account)
+      !okPw(
+        password,
+        account
+      )
     ) {
-      return send(res, 401, {
-        error:
-          'Wrong Minecraft username or password.'
-      });
+      return send(
+        res,
+        401,
+        {
+          error:
+            'Wrong Minecraft username or password.'
+        }
+      );
     }
 
     return send(
       res,
       200,
       {
-        user: pub(account)
+        user:
+          pub(account)
       },
       startSession(
         req,
@@ -572,7 +751,10 @@ async function api(req, res, url) {
       cookies(req).sid;
 
     if (token) {
-      delete db.sessions[sha(token)];
+      delete db.sessions[
+        sha(token)
+      ];
+
       save();
     }
 
@@ -593,25 +775,47 @@ async function api(req, res, url) {
     p === '/api/me' &&
     m === 'GET'
   ) {
-    return send(res, 200, {
-      user: u ? pub(u) : null
-    });
+    return send(
+      res,
+      200,
+      {
+        user:
+          u ? pub(u) : null
+      }
+    );
   }
+
+  // ------------------------------------------
+  // TESTS
+  // ------------------------------------------
 
   if (
     p === '/api/tests' &&
     m === 'GET'
   ) {
-    if (!need(u, 'tester', 'admin')) {
-      return send(res, 403, {
-        error: 'Not allowed.'
-      });
+    if (
+      !need(
+        u,
+        'tester',
+        'admin'
+      )
+    ) {
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Not allowed.'
+        }
+      );
     }
 
     return send(
       res,
       200,
-      db.tests.slice(-30).reverse()
+      db.tests
+        .slice()
+        .reverse()
     );
   }
 
@@ -619,25 +823,50 @@ async function api(req, res, url) {
     p === '/api/tests' &&
     m === 'POST'
   ) {
-    if (!need(u, 'tester', 'admin')) {
-      return send(res, 403, {
-        error:
-          'Only testers can submit results.'
-      });
+    if (
+      !need(
+        u,
+        'tester',
+        'admin'
+      )
+    ) {
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Only testers can submit results.'
+        }
+      );
     }
 
     const player =
-      String(b.player || '').trim();
+      String(
+        b.player || ''
+      ).trim();
 
-    const region = b.region;
-    const mode = b.mode;
-    const ti = TI.indexOf(b.tier);
+    const region =
+      b.region;
 
-    if (!NAME.test(player)) {
-      return send(res, 400, {
-        error:
-          'Enter a valid Minecraft username.'
-      });
+    const mode =
+      b.mode;
+
+    const ti =
+      TI.indexOf(
+        b.tier
+      );
+
+    if (
+      !NAME.test(player)
+    ) {
+      return send(
+        res,
+        400,
+        {
+          error:
+            'Enter a valid Minecraft username.'
+        }
+      );
     }
 
     if (
@@ -645,13 +874,18 @@ async function api(req, res, url) {
       !MODES[mode] ||
       ti < 0
     ) {
-      return send(res, 400, {
-        error:
-          'Pick a region, gamemode and tier.'
-      });
+      return send(
+        res,
+        400,
+        {
+          error:
+            'Pick a region, gamemode and tier.'
+        }
+      );
     }
 
-    const k = player.toLowerCase();
+    const k =
+      player.toLowerCase();
 
     const pl =
       db.players[k] ||
@@ -664,7 +898,9 @@ async function api(req, res, url) {
     const prev =
       pl.tiers[mode] == null
         ? 'Unranked'
-        : full(pl.tiers[mode]);
+        : full(
+            pl.tiers[mode]
+          );
 
     pl.name = player;
     pl.region = region;
@@ -687,8 +923,222 @@ async function api(req, res, url) {
 
     db.tests.push(t);
 
-    if (db.tests.length > 500) {
+    if (
+      db.tests.length > 500
+    ) {
       db.tests.shift();
+    }
+
+    save();
+
+    const webhook =
+      await postHook(
+        t,
+        u.username
+      );
+
+    return send(
+      res,
+      200,
+      {
+        ok: true,
+        id: t.id,
+        webhook
+      }
+    );
+  }
+
+  // ------------------------------------------
+  // ADMIN DASHBOARD
+  // ------------------------------------------
+
+  if (
+    p === '/api/admin/dashboard' &&
+    m === 'GET'
+  ) {
+    if (!need(u, 'admin')) {
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Admins only.'
+        }
+      );
+    }
+
+    const users =
+      db.users.length;
+
+    const admins =
+      db.users.filter(
+        x =>
+          x.role === 'admin'
+      ).length;
+
+    const testers =
+      db.users.filter(
+        x =>
+          x.role === 'tester'
+      ).length;
+
+    const players =
+      Object.keys(
+        db.players
+      ).length;
+
+    const tests =
+      db.tests.length;
+
+    const recentTests =
+      db.tests
+        .slice()
+        .reverse()
+        .slice(0, 10);
+
+    return send(
+      res,
+      200,
+      {
+        stats: {
+          users,
+          admins,
+          testers,
+          players,
+          tests
+        },
+        recentTests
+      }
+    );
+  }
+
+  // ------------------------------------------
+  // ADMIN PLAYERS
+  // ------------------------------------------
+
+  if (
+    p === '/api/admin/players' &&
+    m === 'GET'
+  ) {
+    if (!need(u, 'admin')) {
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Admins only.'
+        }
+      );
+    }
+
+    const players =
+      Object.values(
+        db.players
+      )
+        .map(playerInfo)
+        .sort(
+          (a, b) =>
+            b.pts - a.pts
+        );
+
+    return send(
+      res,
+      200,
+      players
+    );
+  }
+
+  if (
+    p.startsWith(
+      '/api/admin/players/'
+    ) &&
+    m === 'PATCH'
+  ) {
+    if (!need(u, 'admin')) {
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Admins only.'
+        }
+      );
+    }
+
+    const id =
+      decodeURIComponent(
+        p.slice(
+          '/api/admin/players/'
+            .length
+        )
+      );
+
+    const key =
+      id.toLowerCase();
+
+    const player =
+      db.players[key];
+
+    if (!player) {
+      return send(
+        res,
+        404,
+        {
+          error:
+            'Player not found.'
+        }
+      );
+    }
+
+    if (
+      b.region &&
+      !REG[b.region]
+    ) {
+      return send(
+        res,
+        400,
+        {
+          error:
+            'Invalid region.'
+        }
+      );
+    }
+
+    if (b.region) {
+      player.region =
+        b.region;
+    }
+
+    if (b.tiers) {
+      for (
+        const mode of Object.keys(
+          MODES
+        )
+      ) {
+        if (
+          b.tiers[mode] ===
+          null ||
+          b.tiers[mode] ===
+          undefined ||
+          b.tiers[mode] === ''
+        ) {
+          continue;
+        }
+
+        const value =
+          Number(
+            b.tiers[mode]
+          );
+
+        if (
+          Number.isInteger(value) &&
+          value >= 0 &&
+          value < TI.length
+        ) {
+          player.tiers[mode] =
+            value;
+        }
+      }
     }
 
     save();
@@ -698,28 +1148,176 @@ async function api(req, res, url) {
       200,
       {
         ok: true,
-        id: t.id,
-        webhook:
-          await postHook(
-            t,
-            u.username
-          )
+        player:
+          playerInfo(player)
       }
     );
   }
 
   if (
-    p.startsWith('/api/users')
+    p.startsWith(
+      '/api/admin/players/'
+    ) &&
+    m === 'DELETE'
   ) {
     if (!need(u, 'admin')) {
-      return send(res, 403, {
-        error: 'Admins only.'
-      });
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Admins only.'
+        }
+      );
     }
 
-    const id = p.split('/')[3];
+    const id =
+      decodeURIComponent(
+        p.slice(
+          '/api/admin/players/'
+            .length
+        )
+      );
 
-    if (!id && m === 'GET') {
+    const key =
+      id.toLowerCase();
+
+    if (!db.players[key]) {
+      return send(
+        res,
+        404,
+        {
+          error:
+            'Player not found.'
+        }
+      );
+    }
+
+    delete db.players[key];
+
+    save();
+
+    return send(
+      res,
+      200,
+      {
+        ok: true
+      }
+    );
+  }
+
+  // ------------------------------------------
+  // ADMIN TESTS
+  // ------------------------------------------
+
+  if (
+    p === '/api/admin/tests' &&
+    m === 'GET'
+  ) {
+    if (!need(u, 'admin')) {
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Admins only.'
+        }
+      );
+    }
+
+    return send(
+      res,
+      200,
+      db.tests
+        .slice()
+        .reverse()
+    );
+  }
+
+  if (
+    p.startsWith(
+      '/api/admin/tests/'
+    ) &&
+    m === 'DELETE'
+  ) {
+    if (!need(u, 'admin')) {
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Admins only.'
+        }
+      );
+    }
+
+    const id =
+      decodeURIComponent(
+        p.slice(
+          '/api/admin/tests/'
+            .length
+        )
+      );
+
+    const index =
+      db.tests.findIndex(
+        t => t.id === id
+      );
+
+    if (index === -1) {
+      return send(
+        res,
+        404,
+        {
+          error:
+            'Test not found.'
+        }
+      );
+    }
+
+    db.tests.splice(
+      index,
+      1
+    );
+
+    save();
+
+    return send(
+      res,
+      200,
+      {
+        ok: true
+      }
+    );
+  }
+
+  // ------------------------------------------
+  // ADMIN USERS
+  // ------------------------------------------
+
+  if (
+    p.startsWith(
+      '/api/users'
+    )
+  ) {
+    if (!need(u, 'admin')) {
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Admins only.'
+        }
+      );
+    }
+
+    const id =
+      p.split('/')[3];
+
+    if (
+      !id &&
+      m === 'GET'
+    ) {
       return send(
         res,
         200,
@@ -727,38 +1325,60 @@ async function api(req, res, url) {
       );
     }
 
-    if (!id && m === 'POST') {
+    if (
+      !id &&
+      m === 'POST'
+    ) {
       const name =
-        String(b.username || '').trim();
+        String(
+          b.username || ''
+        ).trim();
 
       const discordUsername =
-        String(b.discordUsername || '').trim();
+        String(
+          b.discordUsername || ''
+        ).trim();
 
       const pw =
-        String(b.password || '');
+        String(
+          b.password || ''
+        );
 
       if (
-        !/^[A-Za-z0-9_]{3,16}$/.test(name) ||
+        !NAME.test(name) ||
         pw.length < 8 ||
-        !['user', 'tester', 'admin'].includes(b.role)
+        ![
+          'user',
+          'tester',
+          'admin'
+        ].includes(b.role)
       ) {
-        return send(res, 400, {
-          error:
-            'Need a valid Minecraft username, an 8+ character password and a valid role.'
-        });
+        return send(
+          res,
+          400,
+          {
+            error:
+              'Need a valid Minecraft username, an 8+ character password and a valid role.'
+          }
+        );
       }
 
       if (
         db.users.some(
           x =>
-            x.username.toLowerCase() ===
+            x.username
+              .toLowerCase() ===
             name.toLowerCase()
         )
       ) {
-        return send(res, 409, {
-          error:
-            'That Minecraft username is taken.'
-        });
+        return send(
+          res,
+          409,
+          {
+            error:
+              'That Minecraft username is taken.'
+          }
+        );
       }
 
       const nu = {
@@ -775,7 +1395,8 @@ async function api(req, res, url) {
 
         role: b.role,
 
-        created: Date.now()
+        created:
+          Date.now()
       };
 
       db.users.push(nu);
@@ -796,160 +1417,260 @@ async function api(req, res, url) {
       );
 
     if (!target) {
-      return send(res, 404, {
-        error: 'User not found.'
-      });
+      return send(
+        res,
+        404,
+        {
+          error:
+            'User not found.'
+        }
+      );
     }
 
     const admins =
       db.users.filter(
-        x => x.role === 'admin'
+        x =>
+          x.role === 'admin'
       ).length;
 
-    if (m === 'PATCH') {
+    if (
+      m === 'PATCH'
+    ) {
       if (
-        !['user', 'tester', 'admin'].includes(b.role)
+        ![
+          'user',
+          'tester',
+          'admin'
+        ].includes(b.role)
       ) {
-        return send(res, 400, {
-          error: 'Bad role.'
-        });
+        return send(
+          res,
+          400,
+          {
+            error:
+              'Bad role.'
+          }
+        );
       }
 
       if (
-        target.role === 'admin' &&
+        target.role ===
+          'admin' &&
         b.role !== 'admin' &&
         admins < 2
       ) {
-        return send(res, 400, {
-          error:
-            'There must always be one admin.'
-        });
+        return send(
+          res,
+          400,
+          {
+            error:
+              'There must always be one admin.'
+          }
+        );
       }
 
-      target.role = b.role;
+      target.role =
+        b.role;
+
       save();
 
       return send(
         res,
         200,
         {
-          user: pub(target)
+          user:
+            pub(target)
         }
       );
     }
 
-    if (m === 'DELETE') {
+    if (
+      m === 'DELETE'
+    ) {
       if (
-        target.role === 'admin' &&
+        target.role ===
+          'admin' &&
         admins < 2
       ) {
-        return send(res, 400, {
-          error:
-            'There must always be one admin.'
-        });
+        return send(
+          res,
+          400,
+          {
+            error:
+              'There must always be one admin.'
+          }
+        );
       }
 
       db.users =
         db.users.filter(
-          x => x.id !== id
+          x =>
+            x.id !== id
         );
 
       for (
-        const [k, s]
-        of Object.entries(db.sessions)
+        const [
+          k,
+          s
+        ] of Object.entries(
+          db.sessions
+        )
       ) {
-        if (s.uid === id) {
+        if (
+          s.uid === id
+        ) {
           delete db.sessions[k];
         }
       }
 
       save();
 
-      return send(res, 200, {
-        ok: true
-      });
+      return send(
+        res,
+        200,
+        {
+          ok: true
+        }
+      );
     }
   }
 
-  // --------------------------------------------------
+  // ------------------------------------------
   // TEMPORARY ACCOUNT DELETE
-  // --------------------------------------------------
+  // ------------------------------------------
 
   if (
-    p === '/api/temp-delete-account' &&
+    p ===
+      '/api/temp-delete-account' &&
     m === 'POST'
   ) {
     const resetKey =
-      String(b.resetKey || '');
+      String(
+        b.resetKey || ''
+      );
 
     const minecraftUsername =
       String(
-        b.minecraftUsername || ''
+        b.minecraftUsername ||
+          ''
       ).trim();
 
     if (
       !process.env.RESET_KEY ||
-      resetKey !== process.env.RESET_KEY
+      resetKey !==
+        process.env.RESET_KEY
     ) {
-      return send(res, 403, {
-        error: 'Invalid reset key.'
-      });
+      return send(
+        res,
+        403,
+        {
+          error:
+            'Invalid reset key.'
+        }
+      );
     }
 
     const account =
       db.users.find(
         v =>
-          v.username.toLowerCase() ===
-          minecraftUsername.toLowerCase()
+          v.username
+            .toLowerCase() ===
+          minecraftUsername
+            .toLowerCase()
       );
 
     if (!account) {
-      return send(res, 404, {
-        error: 'Account not found.'
-      });
+      return send(
+        res,
+        404,
+        {
+          error:
+            'Account not found.'
+        }
+      );
     }
 
     db.users =
       db.users.filter(
-        v => v.id !== account.id
+        v =>
+          v.id !==
+          account.id
       );
 
     for (
-      const [k, s]
-      of Object.entries(db.sessions)
+      const [
+        k,
+        s
+      ] of Object.entries(
+        db.sessions
+      )
     ) {
-      if (s.uid === account.id) {
+      if (
+        s.uid ===
+        account.id
+      ) {
         delete db.sessions[k];
       }
     }
 
     save();
 
-    return send(res, 200, {
-      ok: true,
-      message: 'Account deleted successfully.'
-    });
+    return send(
+      res,
+      200,
+      {
+        ok: true,
+        message:
+          'Account deleted successfully.'
+      }
+    );
   }
 
-  return send(res, 404, {
-    error: 'Not found'
-  });
+  return send(
+    res,
+    404,
+    {
+      error:
+        'Not found'
+    }
+  );
 }
 
+// ------------------------------------------
+// STATIC FILES
+// ------------------------------------------
+
 const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript',
-  '.css': 'text/css',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.png': 'image/png',
-  '.svg': 'image/svg+xml'
+  '.html':
+    'text/html; charset=utf-8',
+
+  '.js':
+    'text/javascript',
+
+  '.css':
+    'text/css',
+
+  '.jpg':
+    'image/jpeg',
+
+  '.jpeg':
+    'image/jpeg',
+
+  '.png':
+    'image/png',
+
+  '.svg':
+    'image/svg+xml'
 };
 
 const server =
   http.createServer(
-    async (req, res) => {
+    async (
+      req,
+      res
+    ) => {
 
+      // GitHub Pages -> Render API
       res.setHeader(
         'access-control-allow-origin',
         'https://frosttiers.xyz'
@@ -970,8 +1691,14 @@ const server =
         'GET, POST, PATCH, DELETE, OPTIONS'
       );
 
-      if (req.method === 'OPTIONS') {
-        res.writeHead(204);
+      if (
+        req.method ===
+        'OPTIONS'
+      ) {
+        res.writeHead(
+          204
+        );
+
         return res.end();
       }
 
@@ -1002,7 +1729,9 @@ const server =
 
       try {
         if (
-          url.pathname.startsWith('/api/')
+          url.pathname.startsWith(
+            '/api/'
+          )
         ) {
           return await api(
             req,
@@ -1018,7 +1747,10 @@ const server =
 
         let f =
           FILES.has(name)
-            ? path.join(PUB, name)
+            ? path.join(
+                PUB,
+                name
+              )
             : null;
 
         if (
@@ -1037,8 +1769,13 @@ const server =
           !f ||
           !fs.existsSync(f)
         ) {
-          res.writeHead(404);
-          return res.end('Not found');
+          res.writeHead(
+            404
+          );
+
+          return res.end(
+            'Not found'
+          );
         }
 
         res.writeHead(
@@ -1056,7 +1793,9 @@ const server =
           .pipe(res);
 
       } catch (e) {
-        if (!res.headersSent) {
+        if (
+          !res.headersSent
+        ) {
           send(
             res,
             400,
