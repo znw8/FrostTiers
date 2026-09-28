@@ -5,1570 +5,2232 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FrostTiers - Rankings</title>
 <link rel="icon" href="IMG_3783.jpeg">
+
 <style>
-:root{--bg:#0a0d14;--bar:#0e131c;--panel:#111826;--card:#151c2b;--pill:#1a2334;--line:#222c3f;--text:#f3f5f9;--mute:#7c879b;--gold:#e9b83f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{
+  --bg:#080c14;
+  --bar:#0d131e;
+  --panel:#101827;
+  --card:#151d2c;
+  --pill:#192336;
+  --line:#243047;
+  --text:#f3f6fb;
+  --mute:#7f8ba1;
+  --blue:#69c7ff;
+  --gold:#e9b83f;
+  --green:#65dc8a;
+  --red:#ff626d;
+}
+
 *{box-sizing:border-box}
+
 html,body{margin:0}
-body{background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI",system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body::before,body::after{content:"";position:fixed;pointer-events:none;z-index:-1;border-radius:50%;filter:blur(60px);opacity:.1}
-body::before{width:260px;height:260px;top:8%;left:-120px;background:#1879c9}
-body::after{width:240px;height:240px;right:-120px;bottom:8%;background:#3156c7}
-.app{max-width:850px;margin:0 auto;padding:0 12px 40px}
-button{font-family:inherit;color:inherit;cursor:pointer}
-button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #6cb8ff;outline-offset:2px}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,"Segoe UI",system-ui,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+body::before,
+body::after{
+  content:"";
+  position:fixed;
+  pointer-events:none;
+  z-index:-1;
+  border-radius:50%;
+  filter:blur(70px);
+  opacity:.1;
+}
+
+body::before{
+  width:280px;
+  height:280px;
+  top:8%;
+  left:-130px;
+  background:#1879c9;
+}
+
+body::after{
+  width:260px;
+  height:260px;
+  right:-130px;
+  bottom:8%;
+  background:#3156c7;
+}
+
+.app{
+  max-width:850px;
+  margin:0 auto;
+  padding:0 12px 40px;
+}
+
+button{
+  font-family:inherit;
+  color:inherit;
+  cursor:pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible{
+  outline:2px solid var(--blue);
+  outline-offset:2px;
+}
 
 /* HEADER */
-.hdr{margin-top:12px;display:flex;align-items:center;gap:10px;background:var(--bar);border:1px solid var(--line);border-radius:18px;padding:9px 13px;transition:border-color .25s ease,box-shadow .25s ease,transform .25s ease;animation:headerDrop .65s cubic-bezier(.16,1,.3,1) backwards}
-.hdr:hover{border-color:#2b3950;box-shadow:0 8px 30px rgba(0,0,0,.15);transform:translateY(-1px)}
-.logo{font:900 italic 23px/1 Impact,"Arial Black",sans-serif;letter-spacing:1px;background:linear-gradient(#fff 15%,#8fd3ff 55%,#3b8fd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #10315a) drop-shadow(0 3px 0 #0a1c36);white-space:nowrap;animation:logoFloat 4s ease-in-out infinite}
-.hl{width:36px;height:36px;border-radius:9px;object-fit:cover;transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s ease}
-.hl:hover{transform:scale(1.1) rotate(-3deg);box-shadow:0 0 20px rgba(105,199,255,.25)}
-.search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--pill);border-radius:999px;padding:0 13px;height:40px;transition:background .25s ease,box-shadow .3s ease,transform .25s ease}
-.search:focus-within{background:#202b3e;box-shadow:0 0 0 2px rgba(108,184,255,.1),0 0 22px rgba(105,199,255,.1);transform:scale(1.01)}
-.search:focus-within svg{animation:searchPulse .7s ease}
-.search input{flex:1;min-width:0;background:none;border:0;color:var(--text);font-size:14px;outline:0}
-.search svg{width:18px;height:18px;flex:none;stroke:var(--mute)}
-.burger{background:none;border:0;padding:6px;transition:transform .25s ease}
-.burger:hover{transform:scale(1.12)}
-.burger:hover svg{animation:burgerWiggle .35s ease}
-.burger svg{width:22px;height:22px;stroke:var(--text)}
+
+.hdr{
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--bar);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:9px 13px;
+}
+
+.logo{
+  font:900 italic 23px/1 Impact,"Arial Black",sans-serif;
+  letter-spacing:1px;
+  background:linear-gradient(#fff 15%,#8fd3ff 55%,#3b8fd6);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  white-space:nowrap;
+}
+
+.hl{
+  width:36px;
+  height:36px;
+  border-radius:9px;
+  object-fit:cover;
+}
+
+.search{
+  flex:1;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:var(--pill);
+  border-radius:999px;
+  padding:0 13px;
+  height:40px;
+}
+
+.search input{
+  flex:1;
+  min-width:0;
+  background:none;
+  border:0;
+  color:var(--text);
+  font-size:14px;
+  outline:0;
+}
+
+.search svg{
+  width:18px;
+  height:18px;
+  stroke:var(--mute);
+  flex:none;
+}
+
+.burger{
+  background:none;
+  border:0;
+  padding:6px;
+}
+
+.burger svg{
+  width:22px;
+  height:22px;
+  stroke:var(--text);
+}
 
 /* TABS */
-.tabs{display:flex;gap:7px;overflow-x:auto;margin-top:19px;padding-bottom:0;scrollbar-width:none;animation:tabsAppear .55s cubic-bezier(.16,1,.3,1) .08s backwards}
+
+.tabs{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  margin-top:19px;
+  scrollbar-width:none;
+}
+
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:none;width:calc((100% - 30px)/3.4);min-width:96px;background:var(--bar);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:9px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--mute);font-weight:800;font-size:14px;position:relative;overflow:hidden;transition:background .25s ease,color .25s ease,transform .3s cubic-bezier(.16,1,.3,1),box-shadow .25s ease}
-.tab::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.07) 50%,transparent 80%);transform:translateX(-120%);transition:transform .55s ease;pointer-events:none}
-.tab:hover::before,.tab.on::before{transform:translateX(120%)}
-.tab:hover{background:#131b29;color:#cbd5e1;transform:translateY(-3px)}
-.tab svg{width:31px;height:31px;transition:transform .3s cubic-bezier(.16,1,.3,1)}
-.tab:hover svg{transform:translateY(-3px) scale(1.08)}
-.tab.on{background:var(--panel);color:var(--text);box-shadow:0 -4px 18px rgba(105,199,255,.04)}
-.tab.on svg{animation:tabIconPop .5s cubic-bezier(.16,1,.3,1)}
-.tab.on::after{content:"";position:absolute;left:6px;right:6px;bottom:0;height:3px;background:var(--text);border-radius:2px;box-shadow:0 0 12px rgba(255,255,255,.2)}
+
+.tab{
+  flex:none;
+  width:calc((100% - 30px)/3.4);
+  min-width:96px;
+  background:var(--bar);
+  border:1px solid var(--line);
+  border-bottom:0;
+  border-radius:18px 18px 0 0;
+  padding:9px 4px 7px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  color:var(--mute);
+  font-weight:800;
+  font-size:14px;
+}
+
+.tab svg{
+  width:31px;
+  height:31px;
+}
+
+.tab.on{
+  background:var(--panel);
+  color:var(--text);
+  box-shadow:0 -4px 18px rgba(105,199,255,.05);
+}
+
+.tab.on::after{
+  content:"";
+  position:absolute;
+  left:6px;
+  right:6px;
+  bottom:0;
+  height:3px;
+  background:var(--text);
+  border-radius:2px;
+}
 
 /* LTM */
-.ltm-coming{position:relative;overflow:hidden;isolation:isolate;margin-top:12px;padding:14px 16px;background:var(--bar);border:1px solid var(--line);border-radius:14px;text-align:center;animation:boxRise .6s cubic-bezier(.16,1,.3,1) .12s backwards;box-shadow:0 8px 30px rgba(0,0,0,.12)}
-.ltm-coming::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 25%,rgba(105,199,255,.09) 50%,transparent 75%);transform:translateX(-120%);animation:ltmSweep 5s ease-in-out infinite;pointer-events:none}
-.ltm-coming::after{content:"";position:absolute;left:15%;right:15%;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(105,199,255,.55),transparent);animation:ltmLine 3s ease-in-out infinite}
-.ltm-title{font-weight:900;font-size:16px;color:var(--text);margin-bottom:5px}
-.ltm-text{color:var(--mute);font-size:13px;line-height:1.45}
+
+.ltm-coming{
+  position:relative;
+  overflow:hidden;
+  margin-top:12px;
+  padding:14px 16px;
+  background:var(--bar);
+  border:1px solid var(--line);
+  border-radius:14px;
+  text-align:center;
+}
+
+.ltm-title{
+  font-weight:900;
+  font-size:16px;
+  margin-bottom:5px;
+}
+
+.ltm-text{
+  color:var(--mute);
+  font-size:13px;
+  line-height:1.45;
+}
 
 /* MAIN */
-.box{background:var(--panel);border:1px solid var(--line);border-radius:0 0 21px 21px;padding:13px 11px;animation:boxRise .65s cubic-bezier(.16,1,.3,1) .16s backwards}
-.info{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
-.ibtn{display:flex;align-items:center;gap:7px;background:var(--pill);border:0;border-radius:11px;padding:0 15px;height:38px;font-size:14px;font-weight:500;transition:background .25s ease,transform .3s cubic-bezier(.16,1,.3,1),box-shadow .25s ease}
-.ibtn:hover{background:#222e43;transform:translateY(-3px) scale(1.02);box-shadow:0 7px 18px rgba(0,0,0,.18)}
-.ibtn i{width:18px;height:18px;border-radius:50%;background:var(--text);color:var(--bar);display:grid;place-items:center;font:800 12px Georgia,serif;font-style:normal}
-.srv{display:flex;align-items:center;gap:8px}
-.slogo{width:39px;height:39px;border-radius:9px;object-fit:cover;background:linear-gradient(135deg,#6cc4ff,#2a63c9);display:grid;place-items:center;transition:transform .3s ease,box-shadow .3s ease}
-.slogo:hover{transform:rotate(-4deg) scale(1.08);box-shadow:0 0 18px rgba(105,199,255,.2)}
-.sl{font-size:9px;font-weight:800;letter-spacing:.5px;color:var(--mute)}
-.ip{display:flex;align-items:center;gap:8px;background:var(--pill);border-radius:8px;padding:0 9px;height:30px;font-weight:700;font-size:13px;border:0}
-.dc{width:38px;height:30px;border:0;border-radius:8px;background:#4f5cf0;display:grid;place-items:center;transition:transform .3s cubic-bezier(.16,1,.3,1),filter .25s ease,box-shadow .25s ease}
-.dc:hover{transform:translateY(-3px) scale(1.08);filter:brightness(1.08);box-shadow:0 7px 18px rgba(79,92,240,.2)}
-.dc svg{width:21px;height:21px;fill:#fff}
 
-/* ACCOUNT */
-.account-btn{display:flex;align-items:center;gap:8px;background:var(--pill);border:0;border-radius:11px;padding:0 13px;height:38px;font-size:14px;font-weight:700;white-space:nowrap;transition:background .25s ease,transform .3s cubic-bezier(.16,1,.3,1),box-shadow .25s ease}
-.account-btn:hover{background:#222e43;transform:translateY(-3px);box-shadow:0 7px 18px rgba(0,0,0,.18)}
-.account-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
-.account-name{max-width:120px;overflow:hidden;text-overflow:ellipsis}
-.auth-modal{display:none;position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px}
-.auth-modal.active{display:flex;animation:profileBackdrop .3s ease backwards}
-.auth-card{position:relative;width:min(100%,420px);max-height:calc(100vh - 40px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:32px 22px 24px;box-shadow:0 25px 80px rgba(0,0,0,.5),0 0 40px rgba(105,199,255,.06);animation:profileIn .4s cubic-bezier(.16,1,.3,1) backwards}
-.auth-close{position:absolute;top:14px;right:14px;width:40px;height:40px;border:0;border-radius:50%;background:#1c2536;display:grid;place-items:center;transition:transform .3s ease,background .2s ease}
-.auth-close:hover{transform:rotate(90deg) scale(1.08);background:#27344a}
-.auth-close svg{width:19px;height:19px;stroke:var(--text)}
-.auth-logo{display:block;width:64px;height:64px;object-fit:cover;border-radius:14px;margin:0 auto 14px}
-.auth-title{text-align:center;font-size:28px;font-weight:900}
-.auth-sub{text-align:center;color:var(--mute);font-size:14px;margin:6px 0 18px}
-.auth-error{min-height:0;color:#ff6b73;background:rgba(224,70,76,.1);border:1px solid rgba(224,70,76,.2);border-radius:10px;padding:0 10px;font-size:13px;line-height:1.4;margin-bottom:10px;display:none}
-.auth-error.show{display:block;padding:9px 10px}
-.auth-form{display:flex;flex-direction:column;gap:10px}
-.auth-input{width:100%;height:46px;background:var(--pill);border:1px solid var(--line);border-radius:11px;color:var(--text);padding:0 13px;font:inherit;outline:0}
-.auth-input::placeholder{color:var(--mute)}
-.auth-input:focus{border-color:#38506e;box-shadow:0 0 0 2px rgba(108,184,255,.08)}
-.auth-submit,.auth-logout{width:100%;height:46px;border:0;border-radius:11px;background:#2f6fa8;color:#fff;font-weight:900;font-size:15px;transition:transform .25s ease,filter .25s ease,box-shadow .25s ease}
-.auth-submit:hover,.auth-logout:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 8px 20px rgba(47,111,168,.2)}
-.auth-submit:disabled,.auth-logout:disabled{opacity:.6;cursor:wait;transform:none}
-.auth-switch{display:block;margin:14px auto 0;background:none;border:0;color:#8fcfff;font-weight:700;font-size:14px}
-.auth-switch:hover{text-decoration:underline}
-.auth-account{display:none;text-align:center}
-.auth-account.active{display:block}
-.auth-account-name{font-size:27px;font-weight:900;margin-top:2px}
-.auth-account-info{color:var(--mute);font-size:14px;margin:7px 0 20px}
-.account-role{display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;border-radius:999px;background:#1b2b40;color:#8fcfff;font-size:13px;font-weight:900;margin-bottom:14px}
-.admin-open-btn{display:none;width:100%;height:46px;border:0;border-radius:11px;background:#273f61;color:#fff;font-weight:900;font-size:15px;margin-bottom:10px;transition:transform .25s ease,filter .25s ease}
-.admin-open-btn:hover{transform:translateY(-2px);filter:brightness(1.1)}
+.box{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:0 0 21px 21px;
+  padding:13px 11px;
+}
 
-/* ADMIN */
-.admin-modal{display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:14px}
-.admin-modal.active{display:flex;animation:profileBackdrop .25s ease}
-.admin-card{position:relative;width:min(100%,900px);max-height:calc(100vh - 28px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 25px 90px rgba(0,0,0,.55),0 0 45px rgba(105,199,255,.07);animation:profileIn .35s cubic-bezier(.16,1,.3,1)}
-.admin-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
-.admin-header h2{margin:0;font-size:26px}
-.admin-close{width:40px;height:40px;border:0;border-radius:50%;background:#1c2536;display:grid;place-items:center}
-.admin-close svg{width:19px;height:19px;stroke:var(--text)}
-.admin-tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;scrollbar-width:none}
-.admin-tabs::-webkit-scrollbar{display:none}
-.admin-tab{border:1px solid var(--line);background:var(--pill);border-radius:10px;padding:10px 15px;font-weight:800;white-space:nowrap}
-.admin-tab.active{background:#29466b;border-color:#41698f}
-.admin-section{display:none}
-.admin-section.active{display:block}
-.admin-section-title{font-size:20px;font-weight:900;margin:4px 0 12px}
-.admin-list{display:flex;flex-direction:column;gap:8px}
-.admin-user{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.admin-user-main{min-width:0}
-.admin-user-name{font-weight:900;font-size:16px}
-.admin-user-discord{color:var(--mute);font-size:13px;margin-top:3px;overflow:hidden;text-overflow:ellipsis}
-.admin-user-role{display:flex;align-items:center;gap:8px;flex:none}
-.admin-role-select{height:38px;background:var(--pill);border:1px solid var(--line);border-radius:9px;color:var(--text);padding:0 9px;font:inherit;font-weight:700}
-.admin-role-select:disabled{opacity:.55}
-.admin-player{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px}
-.admin-player-name{font-weight:900}
-.admin-player-meta{color:var(--mute);font-size:13px;margin-top:4px}
-.admin-note{color:var(--mute);line-height:1.5;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-.admin-error{color:#ff6b73;background:rgba(224,70,76,.1);border:1px solid rgba(224,70,76,.2);border-radius:10px;padding:10px}
-.admin-success{color:#70e090;background:rgba(70,224,120,.08);border:1px solid rgba(70,224,120,.15);border-radius:10px;padding:10px}
+.info{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.ibtn,
+.account-btn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:var(--pill);
+  border:0;
+  border-radius:11px;
+  padding:0 14px;
+  height:38px;
+  font-size:14px;
+  font-weight:700;
+}
+
+.ibtn i{
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:var(--text);
+  color:var(--bar);
+  display:grid;
+  place-items:center;
+  font:800 12px Georgia,serif;
+  font-style:normal;
+}
+
+.account-btn svg{
+  width:18px;
+  height:18px;
+  stroke:currentColor;
+}
+
+.account-name{
+  max-width:120px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.srv{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.slogo{
+  width:39px;
+  height:39px;
+  border-radius:9px;
+  object-fit:cover;
+}
+
+.sl{
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.5px;
+  color:var(--mute);
+}
+
+.ip{
+  display:flex;
+  align-items:center;
+  background:var(--pill);
+  border-radius:8px;
+  padding:0 9px;
+  height:30px;
+  font-weight:700;
+  font-size:13px;
+}
+
+.dc{
+  width:38px;
+  height:30px;
+  border:0;
+  border-radius:8px;
+  background:#4f5cf0;
+  display:grid;
+  place-items:center;
+}
+
+.dc svg{
+  width:21px;
+  height:21px;
+  fill:#fff;
+}
 
 /* COLUMNS */
-.cols{display:grid;grid-template-columns:67px 1fr 76px;padding:19px 9px 9px;color:var(--mute);font-weight:900;font-size:14px;letter-spacing:.5px;opacity:.7;animation:fadeUp .5s ease .2s backwards}
+
+.cols{
+  display:grid;
+  grid-template-columns:67px 1fr 76px;
+  padding:19px 9px 9px;
+  color:var(--mute);
+  font-weight:900;
+  font-size:14px;
+  letter-spacing:.5px;
+}
+
 .cols div:nth-child(2){padding-left:12px}
 .cols div:nth-child(3){text-align:center}
 
 /* PLAYER CARD */
-.card{position:relative;overflow:hidden;isolation:isolate;background:var(--card);border:1px solid var(--line);border-radius:17px;padding:8px 8px 12px;margin-bottom:10px;cursor:pointer;transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .25s ease,box-shadow .35s ease,background .25s ease;animation:rankingCardIn .55s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(var(--card-index,0) * 60ms)}
-.card::before{content:"";position:absolute;top:0;bottom:0;left:-80%;width:55%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.055),transparent);transform:skewX(-18deg);transition:left .7s ease;pointer-events:none;z-index:5}
-.card:hover::before{left:140%}
-.card::after{content:"";position:absolute;left:12%;right:12%;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(105,199,255,.5),transparent);opacity:0;transform:scaleX(.5);transition:opacity .25s ease,transform .35s ease}
-.card:hover::after{opacity:1;transform:scaleX(1)}
-.card:hover{transform:translateY(-5px) scale(1.008);border-color:#38506e;background:#171f30;box-shadow:0 14px 32px rgba(0,0,0,.28),0 0 20px rgba(105,199,255,.06)}
-.top{display:grid;grid-template-columns:42% 1fr auto;align-items:center;gap:10px}
-.rk{height:58px;position:relative;clip-path:polygon(0 0,100% 0,86% 100%,0 100%);background:#4a5568;overflow:hidden}
+
+.card{
+  position:relative;
+  overflow:hidden;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:17px;
+  padding:8px 8px 12px;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:.25s ease;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  border-color:#38506e;
+  background:#171f30;
+  box-shadow:0 14px 32px rgba(0,0,0,.25);
+}
+
+.top{
+  display:grid;
+  grid-template-columns:42% 1fr auto;
+  align-items:center;
+  gap:10px;
+}
+
+.rk{
+  height:58px;
+  position:relative;
+  clip-path:polygon(0 0,100% 0,86% 100%,0 100%);
+  background:#4a5568;
+  overflow:hidden;
+}
+
 .rk.p1{background:#e5b94f}
 .rk.p2{background:#8a9aa3}
 .rk.p3{background:#b8702e}
 .rk.px{background:var(--pill)}
-.rk b{position:absolute;left:11px;top:50%;transform:translateY(-50%);font:900 italic 34px/1 Inter,system-ui,sans-serif;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.28);z-index:2;transition:transform .35s cubic-bezier(.16,1,.3,1)}
-.card:hover .rk b{transform:translateY(-50%) translateX(3px) scale(1.05)}
-.rk .head{position:absolute;right:4%;bottom:-9px;height:78px;width:auto;object-fit:contain;transition:transform .45s cubic-bezier(.16,1,.3,1),filter .35s ease;z-index:1}
-.card:hover .rk .head{transform:scale(1.09) translateY(-5px);filter:brightness(1.08)}
-.nm{font-weight:800;font-size:21px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .25s ease,transform .25s ease}
-.card:hover .nm{color:#fff;transform:translateX(2px)}
-.tt{display:flex;align-items:center;gap:6px;color:var(--mute);font-size:15px;margin-top:4px;white-space:nowrap;overflow:hidden}
-.tt svg{width:20px;height:20px;flex:none;transition:transform .3s ease}
-.card:hover .tt svg{transform:rotate(-8deg) scale(1.12)}
-.tt span{overflow:hidden;text-overflow:ellipsis}
-.reg{width:48px;height:48px;border-radius:9px;display:grid;place-items:center;font-weight:900;font-size:18px;transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .3s ease,filter .3s ease}
-.card:hover .reg{transform:scale(1.09) rotate(1deg);filter:brightness(1.08);box-shadow:0 0 18px rgba(105,199,255,.08)}
+
+.rk b{
+  position:absolute;
+  left:11px;
+  top:50%;
+  transform:translateY(-50%);
+  font:900 italic 34px/1 Inter,system-ui,sans-serif;
+  color:#fff;
+  z-index:2;
+}
+
+.rk .head{
+  position:absolute;
+  right:4%;
+  bottom:-9px;
+  height:78px;
+  width:auto;
+  object-fit:contain;
+  z-index:1;
+}
+
+.nm{
+  font-weight:800;
+  font-size:21px;
+  line-height:1.1;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.tt{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:var(--mute);
+  font-size:15px;
+  margin-top:4px;
+}
+
+.tt svg{
+  width:20px;
+  height:20px;
+}
+
+.reg{
+  width:48px;
+  height:48px;
+  border-radius:9px;
+  display:grid;
+  place-items:center;
+  font-weight:900;
+  font-size:18px;
+}
+
 .reg.NA{background:#4a1d26;color:#ff5a63}
 .reg.EU{background:#17381f;color:#57d36a}
 .reg.AS{background:#182a52;color:#6fa5ff}
 .reg.OC{background:#3a2050;color:#d08cff}
 
 /* TIERS */
-.tl{font-weight:900;font-size:17px;color:var(--mute);margin:15px 0 7px 7px;opacity:.85}
-.tiers{display:flex;flex-wrap:wrap;gap:3px 6px;padding:0 3px}
-.t{display:flex;flex-direction:column;align-items:center;width:calc((100% - 42px)/8);min-width:35px;animation:tierPop .45s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(var(--tier-index,0) * 35ms + 100ms)}
-.t .c{width:100%;aspect-ratio:1;max-width:38px;border-radius:50%;background:#0d121b;display:grid;place-items:center;border:2px solid transparent;transition:transform .3s cubic-bezier(.16,1,.3,1),border-color .25s ease,background .25s ease,box-shadow .25s ease}
-.t:hover .c{transform:scale(1.13) rotate(4deg);background:#121a27;border-color:rgba(105,199,255,.45);box-shadow:0 0 16px rgba(105,199,255,.12)}
-.t .c svg{width:60%;height:60%}
-.t .b{margin-top:2px;font-weight:900;font-size:13px;padding:3px 6px;border-radius:8px;background:#1d2434;letter-spacing:.3px;transition:transform .3s cubic-bezier(.16,1,.3,1),filter .25s ease,box-shadow .25s ease}
-.t:hover .b{transform:translateY(-2px) scale(1.07);filter:brightness(1.08);box-shadow:0 4px 12px rgba(0,0,0,.2)}
+
+.tl{
+  font-weight:900;
+  font-size:17px;
+  color:var(--mute);
+  margin:15px 0 7px 7px;
+}
+
+.tiers{
+  display:flex;
+  flex-wrap:wrap;
+  gap:3px 6px;
+  padding:0 3px;
+}
+
+.t{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:calc((100% - 42px)/8);
+  min-width:35px;
+}
+
+.t .c{
+  width:100%;
+  aspect-ratio:1;
+  max-width:38px;
+  border-radius:50%;
+  background:#0d121b;
+  display:grid;
+  place-items:center;
+  border:2px solid transparent;
+}
+
+.t .c svg{
+  width:60%;
+  height:60%;
+}
+
+.t .b{
+  margin-top:2px;
+  font-weight:900;
+  font-size:13px;
+  padding:3px 6px;
+  border-radius:8px;
+  background:#1d2434;
+}
+
 .t.k0 .b{color:#e9b83f;background:#3a3020}
 .t.k1 .b{color:#c9b57a;background:#2c2a26}
 .t.k2 .b{color:#d7873a;background:#3a2a1b}
-.t.k2 .c{border-color:#7b4b20}
 .t.k3 .b{color:#8f98ab;background:#232a3a}
 .t.k4 .b{color:#9a7b60;background:#2b2523}
 .t.k5 .b{color:#7c879b}
 
-/* PROFILE */
-.profile{display:none;position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px}
-.profile.active{display:flex;animation:profileBackdrop .3s ease backwards}
-.pcard{position:relative;width:min(100%,440px);max-height:100%;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:34px 20px 24px;text-align:center;animation:profileIn .45s cubic-bezier(.16,1,.3,1) backwards;box-shadow:0 25px 80px rgba(0,0,0,.5),0 0 40px rgba(105,199,255,.06)}
-.pclose{position:absolute;top:16px;right:16px;width:44px;height:44px;border-radius:50%;border:0;background:#1c2536;display:grid;place-items:center;transition:transform .3s cubic-bezier(.16,1,.3,1),background .2s ease,box-shadow .2s ease}
-.pclose:hover{transform:rotate(90deg) scale(1.08);background:#27344a;box-shadow:0 0 18px rgba(105,199,255,.12)}
-.pclose svg{width:20px;height:20px;stroke:var(--text)}
-.pskin{position:relative;width:130px;height:130px;margin:22px auto 12px;border-radius:50%;background:var(--card);border:3px solid var(--gold);display:grid;place-items:center;font:900 52px Inter,system-ui,sans-serif;color:var(--mute);animation:skinPulse 3s ease-in-out infinite}
-.pskin::before{content:"";position:absolute;inset:-9px;border-radius:50%;border:2px solid transparent;border-top-color:rgba(105,199,255,.75);border-right-color:rgba(105,199,255,.2);animation:skinRing 4s linear infinite;pointer-events:none}
-.pskin img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:top}
-.pname{font-size:32px;font-weight:900;color:#c9d3e6;line-height:1.1}
-.ptitle{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:8px 20px 8px 10px;border-radius:999px;background:#3d3a24;color:#f5d54a;font-weight:700;font-size:18px;transition:transform .3s ease,box-shadow .3s ease}
-.ptitle:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(233,184,63,.12)}
-.ptitle svg{width:28px;height:28px;animation:titleIconFloat 2.5s ease-in-out infinite}
-.pregion{margin-top:16px;font-size:24px;font-weight:800;color:#2f3a52}
-.plink{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:7px 14px 7px 7px;border-radius:14px;background:var(--pill);color:var(--mute);text-decoration:none;font-size:15px;transition:transform .3s ease,box-shadow .3s ease}
-.plink:hover{transform:translateY(-2px);box-shadow:0 7px 20px rgba(0,0,0,.2)}
-.plink i{width:32px;height:32px;border-radius:8px;background:#000;color:#fff;display:grid;place-items:center;font:900 18px Inter,sans-serif;font-style:normal}
-.plink svg{width:15px;height:15px}
-.psec{text-align:left;font-size:26px;color:#9aa5ba;margin:26px 0 10px 4px}
-.ppos{position:relative;display:flex;align-items:center;gap:12px;height:58px;border:2px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
-.ppos::after{content:"";position:absolute;top:0;bottom:0;left:-70%;width:45%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);transform:skewX(-15deg);animation:positionSweep 4.5s ease-in-out infinite;pointer-events:none}
-.ppos .n{height:100%;width:28%;display:flex;align-items:center;padding-left:14px;background:#f0bb3e;clip-path:polygon(0 0,100% 0,86% 100%,0 100%);font:900 italic 36px Inter,sans-serif;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.25)}
-.ppos .o{font-weight:900;font-size:22px}
-.ppos .p{margin-left:auto;padding-right:14px;color:var(--mute);font-size:16px}
-.ptiers{display:flex;gap:6px;overflow-x:auto;padding:10px 10px 12px;border:2px solid var(--line);border-radius:14px}
-.ptiers::-webkit-scrollbar{height:4px}
-.ptiers::-webkit-scrollbar-thumb{background:var(--mute);border-radius:4px}
-.ptier{flex:none;width:58px;display:flex;flex-direction:column;align-items:center;gap:6px;animation:profileTierIn .4s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(var(--profile-tier-index,0) * 45ms)}
-.ptier .c{width:48px;height:48px;border-radius:50%;background:#0d121b;display:grid;place-items:center;transition:transform .3s ease,box-shadow .3s ease}
-.ptier:hover .c{transform:scale(1.1) rotate(4deg);box-shadow:0 0 15px rgba(105,199,255,.12)}
-.ptier .c svg{width:60%;height:60%}
-.ptier b{font-size:16px;font-weight:900;color:var(--gold)}
-
 /* TIER BOARD */
-.board{display:flex;gap:8px;overflow-x:auto;padding:14px 2px 18px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+
+.board{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:14px 2px 18px;
+  scrollbar-width:none;
+}
+
 .board::-webkit-scrollbar{display:none}
-.tcol{flex:none;width:min(69%,320px)}
-.thead{display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:18px 18px 0 0;font-weight:900;font-size:26px;margin-bottom:3px;background:#1a2232;color:#e6ebf5;animation:fadeUp .45s ease backwards}
-.thead svg{width:30px;height:30px}
+
+.tcol{
+  flex:none;
+  width:min(69%,320px);
+}
+
+.thead{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  height:52px;
+  border-radius:18px 18px 0 0;
+  font-weight:900;
+  font-size:26px;
+  margin-bottom:3px;
+  background:#1a2232;
+}
+
+.thead svg{
+  width:30px;
+  height:30px;
+}
+
 .tc1 .thead{background:#3f3520;color:#f0b73a}
 .tc2 .thead{background:#343a4b;color:#c3cad8}
 .tc3 .thead{background:#2f261f;color:#c98d59}
-.tc2 .thead svg{filter:grayscale(1) brightness(1.5)}
-.tc3 .thead svg{filter:hue-rotate(-12deg) saturate(.7) brightness(.8)}
-.tc4 .thead svg,.tc5 .thead svg{visibility:hidden}
-.prow{display:flex;align-items:center;gap:10px;height:36px;margin-bottom:2px;padding:0 10px 0 8px;border-left:3px solid var(--rc,#4a5568);background:#182031;cursor:pointer;transition:background .2s ease,transform .25s cubic-bezier(.16,1,.3,1);animation:fadeUp .4s ease backwards;animation-delay:calc(var(--i,0) * 25ms + 80ms)}
-.prow.hi{background:#252e42}
-.prow:hover{background:#2c3750;transform:translateX(3px)}
-.pav{width:28px;height:28px;border-radius:8px;background:#0d121b;overflow:hidden;flex:none}
-.pav img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
-.pn{flex:1;min-width:0;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chev{width:22px;height:22px;flex:none;color:#3a5a8c}
-.prow.hi .chev{color:#6f93cf}
 
-/* EMPTY */
-.empty{text-align:center;color:var(--mute);padding:35px 0;animation:fadeUp .4s ease backwards}
+.prow{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  height:36px;
+  margin-bottom:2px;
+  padding:0 10px 0 8px;
+  border-left:3px solid var(--rc,#4a5568);
+  background:#182031;
+  cursor:pointer;
+}
+
+.prow.hi{background:#252e42}
+
+.prow:hover{
+  background:#2c3750;
+  transform:translateX(3px);
+}
+
+.pav{
+  width:28px;
+  height:28px;
+  border-radius:8px;
+  background:#0d121b;
+  overflow:hidden;
+  flex:none;
+}
+
+.pav img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:top;
+}
+
+.pn{
+  flex:1;
+  min-width:0;
+  font-weight:600;
+  font-size:15px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.chev{
+  width:22px;
+  height:22px;
+  flex:none;
+  color:#3a5a8c;
+}
+
+.empty{
+  text-align:center;
+  color:var(--mute);
+  padding:35px 0;
+}
+
+/* PROFILE */
+
+.profile{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:20;
+  background:rgba(0,0,0,.72);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.profile.active{display:flex}
+
+.pcard{
+  position:relative;
+  width:min(100%,440px);
+  max-height:100%;
+  overflow-y:auto;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:28px;
+  padding:34px 20px 24px;
+  text-align:center;
+  box-shadow:0 25px 80px rgba(0,0,0,.5);
+}
+
+.pclose,
+.auth-close,
+.admin-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:40px;
+  height:40px;
+  border:0;
+  border-radius:50%;
+  background:#1c2536;
+  display:grid;
+  place-items:center;
+}
+
+.pclose svg,
+.auth-close svg,
+.admin-close svg{
+  width:19px;
+  height:19px;
+  stroke:var(--text);
+}
+
+.pskin{
+  position:relative;
+  width:130px;
+  height:130px;
+  margin:22px auto 12px;
+  border-radius:50%;
+  background:var(--card);
+  border:3px solid var(--gold);
+  display:grid;
+  place-items:center;
+  font:900 52px Inter,system-ui,sans-serif;
+  color:var(--mute);
+}
+
+.pskin img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  object-fit:cover;
+  object-position:top;
+}
+
+.pname{
+  font-size:32px;
+  font-weight:900;
+}
+
+.ptitle{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-top:14px;
+  padding:8px 20px 8px 10px;
+  border-radius:999px;
+  background:#3d3a24;
+  color:#f5d54a;
+  font-weight:700;
+  font-size:18px;
+}
+
+.ptitle svg{
+  width:28px;
+  height:28px;
+}
+
+.pregion{
+  margin-top:16px;
+  font-size:24px;
+  font-weight:800;
+  color:#7e8da6;
+}
+
+.plink{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-top:14px;
+  padding:7px 14px 7px 7px;
+  border-radius:14px;
+  background:var(--pill);
+  color:var(--mute);
+  text-decoration:none;
+  font-size:15px;
+}
+
+.plink i{
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  background:#000;
+  color:#fff;
+  display:grid;
+  place-items:center;
+  font-weight:900;
+  font-style:normal;
+}
+
+.psec{
+  text-align:left;
+  font-size:24px;
+  color:#9aa5ba;
+  margin:26px 0 10px 4px;
+}
+
+.ppos{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  height:58px;
+  border:2px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  background:var(--card);
+}
+
+.ppos .n{
+  height:100%;
+  width:28%;
+  display:flex;
+  align-items:center;
+  padding-left:14px;
+  background:#f0bb3e;
+  clip-path:polygon(0 0,100% 0,86% 100%,0 100%);
+  font:900 italic 36px Inter,sans-serif;
+  color:#fff;
+}
+
+.ppos .o{
+  font-weight:900;
+  font-size:22px;
+}
+
+.ppos .p{
+  margin-left:auto;
+  padding-right:14px;
+  color:var(--mute);
+  font-size:16px;
+}
+
+.ptiers{
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  padding:10px;
+  border:2px solid var(--line);
+  border-radius:14px;
+}
+
+.ptier{
+  flex:none;
+  width:58px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+
+.ptier .c{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:#0d121b;
+  display:grid;
+  place-items:center;
+}
+
+.ptier .c svg{
+  width:60%;
+  height:60%;
+}
+
+.ptier b{
+  font-size:16px;
+  color:var(--gold);
+}
+
+/* AUTH */
+
+.auth-modal,
+.admin-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:40;
+  background:rgba(0,0,0,.78);
+  align-items:center;
+  justify-content:center;
+  padding:14px;
+}
+
+.auth-modal.active,
+.admin-modal.active{
+  display:flex;
+}
+
+.auth-card{
+  position:relative;
+  width:min(100%,420px);
+  max-height:calc(100vh - 40px);
+  overflow-y:auto;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:32px 22px 24px;
+  box-shadow:0 25px 80px rgba(0,0,0,.5);
+}
+
+.auth-logo{
+  display:block;
+  width:64px;
+  height:64px;
+  object-fit:cover;
+  border-radius:14px;
+  margin:0 auto 14px;
+}
+
+.auth-title{
+  text-align:center;
+  font-size:28px;
+  font-weight:900;
+}
+
+.auth-sub{
+  text-align:center;
+  color:var(--mute);
+  font-size:14px;
+  margin:6px 0 18px;
+}
+
+.auth-error{
+  display:none;
+  color:#ff6b73;
+  background:rgba(224,70,76,.1);
+  border:1px solid rgba(224,70,76,.2);
+  border-radius:10px;
+  padding:9px 10px;
+  font-size:13px;
+  margin-bottom:10px;
+}
+
+.auth-error.show{display:block}
+
+.auth-form{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.auth-input{
+  width:100%;
+  height:46px;
+  background:var(--pill);
+  border:1px solid var(--line);
+  border-radius:11px;
+  color:var(--text);
+  padding:0 13px;
+  font:inherit;
+  outline:0;
+}
+
+.auth-submit,
+.auth-logout{
+  width:100%;
+  height:46px;
+  border:0;
+  border-radius:11px;
+  background:#2f6fa8;
+  color:#fff;
+  font-weight:900;
+  font-size:15px;
+}
+
+.auth-logout{
+  background:#632d36;
+}
+
+.auth-switch{
+  display:block;
+  margin:14px auto 0;
+  background:none;
+  border:0;
+  color:#8fcfff;
+  font-weight:700;
+  font-size:14px;
+}
+
+.auth-account{
+  display:none;
+  text-align:center;
+}
+
+.auth-account.active{display:block}
+
+.auth-account-name{
+  font-size:27px;
+  font-weight:900;
+}
+
+.auth-account-info{
+  color:var(--mute);
+  font-size:14px;
+  margin:7px 0 20px;
+}
+
+.account-role{
+  display:inline-flex;
+  padding:6px 12px;
+  border-radius:999px;
+  background:#1b2b40;
+  color:#8fcfff;
+  font-size:13px;
+  font-weight:900;
+  margin-bottom:14px;
+}
+
+.admin-open-btn{
+  display:none;
+  width:100%;
+  height:46px;
+  border:0;
+  border-radius:11px;
+  background:#273f61;
+  color:#fff;
+  font-weight:900;
+  font-size:15px;
+  margin-bottom:10px;
+}
+
+/* ADMIN */
+
+.admin-card{
+  position:relative;
+  width:min(100%,1000px);
+  max-height:calc(100vh - 28px);
+  overflow-y:auto;
+  background:#0d1421;
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:24px;
+  box-shadow:0 25px 90px rgba(0,0,0,.6);
+}
+
+.admin-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.admin-header h2{
+  margin:0;
+  font-size:26px;
+}
+
+.admin-head{
+  margin-bottom:20px;
+}
+
+.admin-head h2{
+  margin:0;
+  font-size:27px;
+}
+
+.admin-head p{
+  margin:5px 0 0;
+  color:var(--mute);
+  font-size:14px;
+}
+
+.admin-tabs{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  margin-bottom:20px;
+  padding-bottom:3px;
+  scrollbar-width:none;
+}
+
+.admin-tabs::-webkit-scrollbar{display:none}
+
+.admin-tab{
+  border:1px solid var(--line);
+  background:var(--pill);
+  border-radius:10px;
+  padding:10px 15px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.admin-tab.active{
+  background:#29466b;
+  border-color:#41698f;
+}
+
+.admin-section{
+  display:none;
+}
+
+.admin-section.active{
+  display:block;
+}
+
+.admin-section-title{
+  font-size:20px;
+  font-weight:900;
+  margin:4px 0 12px;
+}
+
+.admin-search{
+  width:100%;
+  height:42px;
+  background:var(--pill);
+  border:1px solid var(--line);
+  border-radius:11px;
+  color:var(--text);
+  padding:0 13px;
+  font:inherit;
+  margin-bottom:12px;
+}
+
+.admin-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.admin-user,
+.admin-player,
+.admin-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+}
+
+.admin-user-main,
+.admin-player-main{
+  min-width:0;
+}
+
+.admin-user-name,
+.admin-player-name{
+  font-weight:900;
+  font-size:16px;
+}
+
+.admin-user-discord,
+.admin-player-meta{
+  color:var(--mute);
+  font-size:13px;
+  margin-top:3px;
+}
+
+.admin-user-role{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:none;
+}
+
+.admin-role-select,
+.admin-select{
+  height:38px;
+  background:var(--pill);
+  border:1px solid var(--line);
+  border-radius:9px;
+  color:var(--text);
+  padding:0 9px;
+  font:inherit;
+  font-weight:700;
+}
+
+.admin-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.admin-btn{
+  border:1px solid var(--line);
+  background:var(--pill);
+  color:var(--text);
+  border-radius:9px;
+  padding:9px 12px;
+  font-weight:800;
+}
+
+.admin-btn.primary{
+  background:#2d6194;
+  border-color:#3b78b1;
+}
+
+.admin-btn.danger{
+  background:#52252d;
+  border-color:#74333e;
+  color:#ff8991;
+}
+
+.admin-note{
+  color:var(--mute);
+  line-height:1.5;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:14px;
+}
+
+.admin-error{
+  color:#ff6b73;
+  background:rgba(224,70,76,.1);
+  border:1px solid rgba(224,70,76,.2);
+  border-radius:10px;
+  padding:10px;
+}
+
+.admin-success{
+  color:#70e090;
+  background:rgba(70,224,120,.08);
+  border:1px solid rgba(70,224,120,.15);
+  border-radius:10px;
+  padding:10px;
+}
+
+/* DASHBOARD */
+
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px;
+  margin-bottom:18px;
+}
+
+.stat-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+}
+
+.stat-label{
+  color:var(--mute);
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+.stat-value{
+  font-size:25px;
+  font-weight:900;
+  margin-top:5px;
+}
+
+.quick-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-bottom:18px;
+}
+
+.quick-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:15px;
+}
+
+.quick-card h3{
+  margin:0 0 5px;
+  font-size:16px;
+}
+
+.quick-card p{
+  margin:0;
+  color:var(--mute);
+  font-size:13px;
+  line-height:1.4;
+}
+
+.recent-list{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.recent-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:11px 12px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:11px;
+}
+
+.recent-main{
+  min-width:0;
+}
+
+.recent-player{
+  font-weight:900;
+}
+
+.recent-meta{
+  color:var(--mute);
+  font-size:12px;
+  margin-top:3px;
+}
+
+.recent-tier{
+  font-weight:900;
+  color:var(--gold);
+}
+
+/* ADMIN FILTERS */
+
+.admin-filters{
+  display:grid;
+  grid-template-columns:1.5fr 1fr 1fr;
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.admin-test{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+}
+
+.admin-test-top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.admin-test-player{
+  font-weight:900;
+}
+
+.admin-test-tier{
+  color:var(--gold);
+  font-weight:900;
+}
+
+.admin-test-meta{
+  color:var(--mute);
+  font-size:12px;
+  margin-top:5px;
+}
 
 /* SIDE MENU */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:9}
-.dr{position:fixed;top:0;bottom:0;right:0;width:min(78%,420px);background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .4s cubic-bezier(.16,1,.3,1);z-index:10;padding:calc(16px + env(safe-area-inset-top,0px)) 19px 22px;display:flex;flex-direction:column;overflow-y:auto;box-shadow:-15px 0 40px rgba(0,0,0,.25)}
-body.open .ov{opacity:1;pointer-events:auto}
-body.open .dr{transform:none}
-.x{align-self:flex-end;width:38px;height:38px;border-radius:9px;border:2px solid var(--mute);background:none;transition:transform .3s ease,background .18s ease}
-.x:hover{transform:rotate(90deg);background:#192231}
-.x svg{width:20px;height:20px;stroke:var(--text)}
-.dr nav{margin-top:22px;display:flex;flex-direction:column;gap:9px}
-.dr nav a{display:flex;align-items:center;gap:13px;color:var(--text);text-decoration:none;font-weight:800;font-size:20px;padding:7px 0;transition:color .25s ease,transform .3s cubic-bezier(.16,1,.3,1)}
-body.open .dr nav a{animation:menuItemIn .4s cubic-bezier(.16,1,.3,1) backwards}
-body.open .dr nav a:nth-child(1){animation-delay:.06s}
-body.open .dr nav a:nth-child(2){animation-delay:.11s}
-body.open .dr nav a:nth-child(3){animation-delay:.16s}
-.dr nav a:hover{transform:translateX(7px);color:#9dd5ff}
-.dr nav a.mu{color:var(--mute);opacity:.5}
-.dr nav svg{width:31px;height:31px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8}
-.dh{margin-top:auto;padding-top:30px;color:var(--mute);font-size:20px;font-weight:500}
-.dg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:11px}
-.dg a{aspect-ratio:1;background:var(--card);border:1px solid var(--line);border-radius:12px;display:grid;place-items:center;transition:transform .3s cubic-bezier(.16,1,.3,1),border-color .25s ease,box-shadow .25s ease}
-.dg a:hover{transform:translateY(-4px) scale(1.04);border-color:#405674;box-shadow:0 8px 20px rgba(0,0,0,.2)}
-.dg svg{width:50%;height:50%}
 
-/* ANIMATIONS */
-@keyframes headerDrop{from{opacity:0;transform:translateY(-16px) scale(.97)}to{opacity:1;transform:none}}
-@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-@keyframes searchPulse{0%{transform:scale(1)}45%{transform:scale(1.18) rotate(-8deg)}100%{transform:scale(1)}}
-@keyframes burgerWiggle{25%{transform:rotate(4deg)}50%{transform:rotate(-4deg)}75%{transform:rotate(2deg)}}
-@keyframes tabsAppear{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@keyframes tabIconPop{0%{transform:scale(.8) rotate(-5deg)}65%{transform:scale(1.14) rotate(2deg)}100%{transform:scale(1)}}
-@keyframes ltmSweep{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(120%)}}
-@keyframes ltmLine{0%,100%{opacity:.25;transform:scaleX(.5)}50%{opacity:1;transform:scaleX(1)}}
-@keyframes boxRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes rankingCardIn{from{opacity:0;transform:translateY(18px) scale(.975)}to{opacity:1;transform:none}}
-@keyframes tierPop{from{opacity:0;transform:translateY(7px) scale(.85)}to{opacity:1;transform:none}}
-@keyframes profileBackdrop{from{opacity:0}to{opacity:1}}
-@keyframes profileIn{from{opacity:0;transform:translateY(30px) scale(.92)}to{opacity:1;transform:none}}
-@keyframes skinPulse{0%,100%{box-shadow:0 0 0 0 rgba(105,199,255,0),0 0 25px rgba(105,199,255,.06)}50%{box-shadow:0 0 0 7px rgba(105,199,255,.025),0 0 35px rgba(105,199,255,.14)}}
-@keyframes skinRing{to{transform:rotate(360deg)}}
-@keyframes titleIconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px) rotate(3deg)}}
-@keyframes positionSweep{0%,60%{left:-70%}82%,100%{left:130%}}
-@keyframes profileTierIn{from{opacity:0;transform:translateY(8px) scale(.9)}to{opacity:1;transform:none}}
-@keyframes menuItemIn{from{opacity:0;transform:translateX(15px)}to{opacity:1;transform:none}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.ov{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .3s ease;
+  z-index:9;
+}
+
+.dr{
+  position:fixed;
+  top:0;
+  bottom:0;
+  right:0;
+  width:min(78%,420px);
+  background:var(--panel);
+  border-left:1px solid var(--line);
+  transform:translateX(100%);
+  transition:transform .35s ease;
+  z-index:10;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  box-shadow:-15px 0 40px rgba(0,0,0,.25);
+}
+
+body.open .ov{
+  opacity:1;
+  pointer-events:auto;
+}
+
+body.open .dr{
+  transform:none;
+}
+
+.x{
+  align-self:flex-end;
+  width:38px;
+  height:38px;
+  border-radius:9px;
+  border:2px solid var(--mute);
+  background:none;
+}
+
+.x svg{
+  width:20px;
+  height:20px;
+  stroke:var(--text);
+}
+
+.dr nav{
+  margin-top:22px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+
+.dr nav a{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  color:var(--text);
+  text-decoration:none;
+  font-weight:800;
+  font-size:20px;
+  padding:7px 0;
+}
+
+.dr nav a.mu{
+  color:var(--mute);
+  opacity:.5;
+}
+
+.dr nav svg{
+  width:31px;
+  height:31px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+}
+
+.dh{
+  margin-top:auto;
+  padding-top:30px;
+  color:var(--mute);
+  font-size:20px;
+  font-weight:500;
+}
+
+.dg{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:11px;
+}
+
+.dg a{
+  aspect-ratio:1;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+}
+
+.dg svg{
+  width:50%;
+  height:50%;
+}
 
 /* RESPONSIVE */
-@media(min-width:600px){.nm{font-size:22px}.tab{min-width:112px}}
-@media(max-width:600px){
-.app{max-width:100%;padding-left:9px;padding-right:9px}
-.card:hover{transform:translateY(-3px)}
-.admin-card{padding:18px}
-.admin-user{align-items:flex-start;flex-direction:column}
-.admin-user-role{width:100%}
-.admin-role-select{width:100%}
+
+@media(max-width:700px){
+  .stat-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .admin-filters{
+    grid-template-columns:1fr;
+  }
 }
-@media(max-width:400px){.nm{font-size:19px}.tt{font-size:14px}.rk b{font-size:30px}.cols{font-size:12px}.t .b{font-size:12px}.pname{font-size:28px}.psec{font-size:22px}.account-name{max-width:80px}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+
+@media(max-width:600px){
+  .app{
+    max-width:100%;
+    padding-left:9px;
+    padding-right:9px;
+  }
+
+  .admin-card{
+    padding:18px;
+  }
+
+  .admin-user,
+  .admin-player,
+  .admin-row{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .admin-user-role{
+    width:100%;
+  }
+
+  .admin-role-select,
+  .admin-select{
+    width:100%;
+  }
+
+  .quick-grid{
+    grid-template-columns:1fr;
+  }
+
+  .nm{
+    font-size:19px;
+  }
+}
+
+@media(max-width:400px){
+  .logo{
+    font-size:20px;
+  }
+
+  .nm{
+    font-size:18px;
+  }
+
+  .tt{
+    font-size:13px;
+  }
+
+  .rk b{
+    font-size:30px;
+  }
+
+  .cols{
+    font-size:12px;
+  }
+
+  .t .b{
+    font-size:12px;
+  }
+
+  .pname{
+    font-size:28px;
+  }
+}
 </style>
 </head>
+
 <body>
 
+<!-- SVG ICONS -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <defs>
+
 <symbol id="i-overall" viewBox="0 0 24 24">
 <path fill="#e0a21a" d="M6 3h12v5.5a6 6 0 0 1-12 0z"/>
 <path fill="none" stroke="#e0a21a" stroke-width="2" d="M6 5H3v2.5A3.5 3.5 0 0 0 6.5 11M18 5h3v2.5a3.5 3.5 0 0 1-3.5 3.5"/>
 <path fill="#e0a21a" d="M10.5 14h3v4h-3zM7.5 19h9v2.5h-9z"/>
 </symbol>
-<symbol id="i-ltm" viewBox="0 0 24 24">
-<path fill="none" stroke="#c4c9d2" stroke-width="2.6" stroke-linecap="round" d="M5 5l14 14M19 5L5 19"/>
-<path fill="none" stroke="#9aa1ad" stroke-width="3.5" stroke-linecap="round" d="M4 17l3 3M20 17l-3 3"/>
-</symbol>
+
 <symbol id="i-vanilla" viewBox="0 0 24 24">
 <path fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" d="M12 2l8.7 5v10L12 22l-8.7-5V7z"/>
 <path fill="#c48cf0" d="M12 6.5l5 3v5l-5 3-5-3v-5z"/>
 </symbol>
+
 <symbol id="i-uhc" viewBox="0 0 24 24">
 <path fill="#e0464c" d="M12 21C4 15 2 11.5 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 3.5-2 7-10 13z"/>
-<path fill="none" stroke="#a7262d" stroke-width="1.6" stroke-linecap="round" d="M6 9l3 3M18 9l-3 3"/>
 </symbol>
+
 <symbol id="i-pot" viewBox="0 0 24 24">
 <path fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" d="M9.5 3h5v5l4.5 8a4 4 0 0 1-3.5 6h-7A4 4 0 0 1 5 16l4.5-8z"/>
 <path fill="#e0546c" d="M6.8 15.5h10.4l1 1.8a3 3 0 0 1-2.6 4.2H8.4a3 3 0 0 1-2.6-4.2z"/>
 </symbol>
+
 <symbol id="i-nethop" viewBox="0 0 24 24">
 <path fill="#9b7fc8" d="M3 12a9 9 0 0 1 18 0v8h-5v-3.5l-2-2h-4l-2 2V20H3z"/>
-<path fill="#6b4fa0" d="M6.5 11.5h4l1 2.5h1l1-2.5h4v3.5h-3l-1-1.5h-2l-1 1.5h-3z"/>
 </symbol>
+
 <symbol id="i-smp" viewBox="0 0 24 24">
 <circle cx="12" cy="12" r="10" fill="#0b2a2a" stroke="#3ec9a7" stroke-width="2"/>
 <path fill="none" stroke="#9af0dc" stroke-width="2.6" stroke-linecap="round" d="M6.5 14.5A6.5 6.5 0 0 0 16 17"/>
-<path fill="#020808" d="M9 6l8 5-3 7z" opacity=".7"/>
 </symbol>
+
 <symbol id="i-sword" viewBox="0 0 24 24">
 <path fill="#5ba7e6" d="M21 2l1 5-10 10-4-4z"/>
 <path fill="#3b6fb0" d="M7 13l4 4-2 2-4-4z"/>
-<path fill="#2d5a94" d="M4.5 16.5l3 3-3 1.5-1.5-1.5z"/>
 </symbol>
+
 <symbol id="i-axe" viewBox="0 0 24 24">
 <path fill="none" stroke="#3d7fd4" stroke-width="3" stroke-linecap="round" d="M4 20L15 9"/>
 <path fill="#66c4e8" d="M13 4l4-2 5 5-2 4-3 1-4-4z"/>
 </symbol>
+
 <symbol id="i-mace" viewBox="0 0 24 24">
 <path fill="none" stroke="#8a86b8" stroke-width="3" stroke-linecap="round" d="M4 20L13 11"/>
 <path fill="#8a90a0" d="M13 3l4-1 5 5-1 4-5 1-4-4z"/>
-<path fill="#5d6272" d="M17 2l5 5-1 4z"/>
 </symbol>
+
 <symbol id="i-rank" viewBox="0 0 24 24">
 <path fill="#f5c64a" d="M12 1l5 5-5 5-5-5z"/>
 <path fill="#e0a21a" d="M12 8l6 6-6 8-6-8z"/>
 <path fill="#fff3c2" d="M12 11l3 3-3 4-3-4z"/>
 </symbol>
+
 </defs>
 </svg>
 
 <div class="app">
 
+<!-- HEADER -->
+
 <div class="hdr">
+
 <img class="hl" src="IMG_3783.jpeg" alt="FrostTiers">
+
 <div class="logo">FROSTTIERS</div>
+
 <label class="search">
-<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-<input id="q" placeholder="Search player..." aria-label="Search player">
+<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round">
+<circle cx="11" cy="11" r="7"/>
+<path d="M20 20l-4-4"/>
+</svg>
+
+<input
+id="q"
+placeholder="Search player..."
+aria-label="Search player"
+>
 </label>
+
 <button class="burger" id="mb" aria-label="Open menu">
-<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round">
+<path d="M3 6h18M3 12h18M3 18h18"/>
+</svg>
 </button>
+
 </div>
+
+<!-- RANKING TABS -->
 
 <div class="tabs" id="tabs" role="tablist"></div>
 
+<!-- LTM -->
+
 <div class="ltm-coming">
 <div class="ltm-title">Limited-Time Modes are coming!</div>
-<div class="ltm-text">We're working on implementing LTMs, which will include team-based leaderboards for various kit events — however, a few other things will take priority :)</div>
+<div class="ltm-text">
+We're working on implementing LTMs, which will include team-based leaderboards for various kit events — however, a few other things will take priority :)
+</div>
 </div>
 
-<div class="box">
-<div class="info">
-<button class="ibtn" onclick="showInfo()"><i>i</i>Information</button>
+<!-- MAIN -->
 
-<button class="account-btn" id="accountButton" type="button" aria-haspopup="dialog" aria-controls="authModal">
-<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 3.4-6 8-6s7.2 1.8 8 6"/></svg>
-<span class="account-name" id="accountButtonText">Account</span>
+<div class="box">
+
+<div class="info">
+
+<button class="ibtn" id="infoButton" type="button">
+<i>i</i>
+Information
+</button>
+
+<button
+class="account-btn"
+id="accountButton"
+type="button"
+aria-haspopup="dialog"
+aria-controls="authModal"
+>
+<svg viewBox="0 0 24 24">
+<circle cx="12" cy="8" r="4"/>
+<path d="M4 21c.8-4.2 3.4-6 8-6s7.2 1.8 8 6"/>
+</svg>
+
+<span class="account-name" id="accountButtonText">
+Account
+</span>
+
 </button>
 
 <div class="srv">
-<img class="slogo" src="IMG_3783.jpeg" alt="FrostTiers">
+
+<img
+class="slogo"
+src="IMG_3783.jpeg"
+alt="FrostTiers"
+>
+
 <div>
+
 <div class="sl">SERVER IP</div>
+
 <div style="display:flex;gap:6px;margin-top:2px">
+
 <div class="ip">Coming soon</div>
-<button class="dc" aria-label="Discord">
-<svg viewBox="0 0 24 24"><path d="M19.5 5.5A16 16 0 0 0 15.6 4.3l-.5 1a14.5 14.5 0 0 0-4.2 0l-.5-1A16 16 0 0 0 6.5 5.5C4 9.3 3.3 13 3.6 16.6a16 16 0 0 0 4.9 2.5l1-1.6a10 10 0 0 1-1.6-.8l.4-.3a11.5 11.5 0 0 0 9.4 0l.4.3c-.5.3-1 .6-1.6.8l1 1.6a16 16 0 0 0 4.9-2.5c.4-4.2-.7-7.9-2.9-11.1zM9.4 14.4c-.9 0-1.7-.9-1.7-1.9s.7-1.9 1.7-1.9 1.7.9 1.7 1.9-.8 1.9-1.7 1.9zm5.2 0c-.9 0-1.7-.9-1.7-1.9s.7-1.9 1.7-1.9 1.7.9 1.7 1.9-.8 1.9-1.7 1.9z"/></svg>
+
+<button class="dc" id="discordButton" type="button" aria-label="Discord">
+<svg viewBox="0 0 24 24">
+<path d="M19.5 5.5A16 16 0 0 0 15.6 4.3l-.5 1a14.5 14.5 0 0 0-4.2 0l-.5-1A16 16 0 0 0 6.5 5.5C4 9.3 3.3 13 3.6 16.6a16 16 0 0 0 4.9 2.5l1-1.6a10 10 0 0 1-1.6-.8l.4-.3a11.5 11.5 0 0 0 9.4 0l.4.3c-.5.3-1 .6-1.6.8l1 1.6a16 16 0 0 0 4.9-2.5c.4-4.2-.7-7.9-2.9-11.1zM9.4 14.4c-.9 0-1.7-.9-1.7-1.9s.7-1.9 1.7-1.9 1.7.9 1.7 1.9-.8 1.9-1.7 1.9zm5.2 0c-.9 0-1.7-.9-1.7-1.9s.7-1.9 1.7-1.9 1.7.9 1.7 1.9-.8 1.9-1.7 1.9z"/>
+</svg>
 </button>
-</div>
+
 </div>
 </div>
 </div>
 
-<div class="cols"><div>#</div><div>PLAYER</div><div>REGION</div></div>
+</div>
+
+<div class="cols">
+<div>#</div>
+<div>PLAYER</div>
+<div>REGION</div>
+</div>
+
 <div id="list"></div>
-</div>
 
 </div>
+</div>
 
-<!-- PROFILE MODAL -->
+<!-- PROFILE -->
+
 <div class="profile" id="profile">
+
 <div class="pcard">
+
 <button class="pclose" id="profileClose" aria-label="Close">
-<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round">
+<path d="M5 5l14 14M19 5L5 19"/>
+</svg>
 </button>
-<div class="pskin"><span id="profileInitial"></span><img id="profileSkin" alt=""></div>
+
+<div class="pskin">
+<span id="profileInitial"></span>
+<img id="profileSkin" alt="">
+</div>
+
 <div class="pname" id="profileName"></div>
+
 <div class="ptitle">
-<svg viewBox="0 0 24 24"><use href="#i-rank"></use></svg>
+<svg viewBox="0 0 24 24">
+<use href="#i-rank"></use>
+</svg>
 <span id="profileTitle"></span>
 </div>
+
 <div class="pregion" id="profileRegion"></div>
-<a class="plink" id="profileNameMC" target="_blank" rel="noopener noreferrer">
-<i>n</i>NameMC
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 5h5v5"/><path d="M10 14L19 5"/><path d="M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>
+
+<a
+class="plink"
+id="profileNameMC"
+target="_blank"
+rel="noopener noreferrer"
+>
+<i>n</i>
+NameMC
 </a>
+
 <div class="psec">POSITION</div>
+
 <div class="ppos">
 <div class="n" id="profileRank"></div>
 <span style="font-size:26px">🏆</span>
 <span class="o">OVERALL</span>
 <span class="p" id="profilePoints"></span>
 </div>
+
 <div class="psec">TIERS</div>
+
 <div class="ptiers" id="profileTiers"></div>
+
 </div>
 </div>
 
 <!-- ACCOUNT MODAL -->
-<div class="auth-modal" id="authModal" aria-hidden="true">
+
+<div
+class="auth-modal"
+id="authModal"
+aria-hidden="true"
+>
+
 <div class="auth-card">
+
 <button class="auth-close" id="authClose" aria-label="Close">
-<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round">
+<path d="M5 5l14 14M19 5L5 19"/>
+</svg>
 </button>
 
 <div id="authForms">
-<img class="auth-logo" src="IMG_3783.jpeg" alt="FrostTiers">
+
+<img
+class="auth-logo"
+src="IMG_3783.jpeg"
+alt="FrostTiers"
+>
+
 <div class="auth-title" id="authTitle">Log In</div>
-<div class="auth-sub" id="authSub">Log in to your FrostTiers account.</div>
+
+<div class="auth-sub" id="authSub">
+Log in to your FrostTiers account.
+</div>
 
 <div class="auth-error" id="authError"></div>
 
 <form class="auth-form" id="loginForm">
-<input class="auth-input" id="loginUsername" autocomplete="username" placeholder="Minecraft username" maxlength="16" required>
-<input class="auth-input" id="loginPassword" type="password" autocomplete="current-password" placeholder="Password" required>
-<button class="auth-submit" id="loginSubmit" type="submit">Log In</button>
+
+<input
+class="auth-input"
+id="loginUsername"
+autocomplete="username"
+placeholder="Minecraft username"
+maxlength="16"
+required
+>
+
+<input
+class="auth-input"
+id="loginPassword"
+type="password"
+autocomplete="current-password"
+placeholder="Password"
+required
+>
+
+<button
+class="auth-submit"
+id="loginSubmit"
+type="submit"
+>
+Log In
+</button>
+
 </form>
 
-<form class="auth-form" id="signupForm" style="display:none">
-<input class="auth-input" id="signupMinecraft" autocomplete="username" placeholder="Minecraft username" maxlength="16" required>
-<input class="auth-input" id="signupDiscord" placeholder="Discord username" maxlength="50" required>
-<input class="auth-input" id="signupPassword" type="password" autocomplete="new-password" placeholder="Password" minlength="8" required>
-<input class="auth-input" id="signupConfirm" type="password" autocomplete="new-password" placeholder="Confirm password" minlength="8" required>
-<button class="auth-submit" id="signupSubmit" type="submit">Create Account</button>
+<form
+class="auth-form"
+id="signupForm"
+style="display:none"
+>
+
+<input
+class="auth-input"
+id="signupMinecraft"
+autocomplete="username"
+placeholder="Minecraft username"
+maxlength="16"
+required
+>
+
+<input
+class="auth-input"
+id="signupDiscord"
+placeholder="Discord username"
+maxlength="50"
+required
+>
+
+<input
+class="auth-input"
+id="signupPassword"
+type="password"
+autocomplete="new-password"
+placeholder="Password"
+minlength="8"
+required
+>
+
+<input
+class="auth-input"
+id="signupConfirm"
+type="password"
+autocomplete="new-password"
+placeholder="Confirm password"
+minlength="8"
+required
+>
+
+<button
+class="auth-submit"
+id="signupSubmit"
+type="submit"
+>
+Create Account
+</button>
+
 </form>
 
-<button class="auth-switch" id="authSwitch" type="button">Don't have an account? Sign up</button>
+<button
+class="auth-switch"
+id="authSwitch"
+type="button"
+>
+Don't have an account? Sign up
+</button>
+
 </div>
 
 <div class="auth-account" id="authAccount">
-<img class="auth-logo" src="IMG_3783.jpeg" alt="FrostTiers">
-<div class="auth-account-name" id="loggedInMinecraft"></div>
-<div class="auth-account-info" id="loggedInDiscord"></div>
-<div class="account-role" id="loggedInRole">User</div>
-<button class="admin-open-btn" id="adminPanelButton" type="button">Admin Panel</button>
-<button class="auth-logout" id="logoutButton" type="button">Log Out</button>
+
+<img
+class="auth-logo"
+src="IMG_3783.jpeg"
+alt="FrostTiers"
+>
+
+<div
+class="auth-account-name"
+id="loggedInMinecraft"
+></div>
+
+<div
+class="auth-account-info"
+id="loggedInDiscord"
+></div>
+
+<div
+class="account-role"
+id="loggedInRole"
+>
+User
+</div>
+
+<button
+class="admin-open-btn"
+id="adminPanelButton"
+type="button"
+>
+Admin Panel
+</button>
+
+<button
+class="auth-logout"
+id="logoutButton"
+type="button"
+>
+Log Out
+</button>
+
 </div>
 
 </div>
 </div>
 
 <!-- ADMIN PANEL -->
-<div class="admin-modal" id="adminModal" aria-hidden="true">
+
+<div
+class="admin-modal"
+id="adminModal"
+aria-hidden="true"
+>
+
 <div class="admin-card">
 
 <div class="admin-header">
-<h2>FrostTiers Admin Panel</h2>
-<button class="admin-close" id="adminClose" aria-label="Close">
-<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+
+<div class="admin-head">
+<h2>FrostTiers Admin</h2>
+<p>Manage accounts, players, rankings, and test results.</p>
+</div>
+
+<button
+class="admin-close"
+id="adminClose"
+aria-label="Close"
+>
+<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round">
+<path d="M5 5l14 14M19 5L5 19"/>
+</svg>
 </button>
+
 </div>
 
 <div class="admin-tabs">
-<button class="admin-tab active" data-admin-section="users">Users</button>
-<button class="admin-tab" data-admin-section="players">Players</button>
-<button class="admin-tab" data-admin-section="tests">Tests</button>
-</div>
 
-<div class="admin-section active" id="adminUsersSection">
-<div class="admin-section-title">Manage Users</div>
-<div class="admin-list" id="adminUsersList">Loading users...</div>
-</div>
-
-<div class="admin-section" id="adminPlayersSection">
-<div class="admin-section-title">Manage Players</div>
-<div class="admin-list" id="adminPlayersList">Loading players...</div>
-</div>
-
-<div class="admin-section" id="adminTestsSection">
-<div class="admin-section-title">Testing</div>
-<div class="admin-note">
-Test management will be connected to the testing API when the backend test-management endpoints are added.
-</div>
-</div>
-
-</div>
-</div>
-
-<div class="ov" id="ov"></div>
-
-<aside class="dr" id="dr" aria-label="Menu">
-<button class="x" id="xb" aria-label="Close menu">
-<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+<button
+class="admin-tab active"
+data-admin-section="overview"
+type="button"
+>
+Overview
 </button>
-<nav>
-<a class="mu" href="#" onclick="return false">
-<svg viewBox="0 0 24 24"><path stroke-linejoin="round" d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>
-Home
-</a>
-<a href="#" id="rankingsLink">
-<svg viewBox="0 0 24 24"><path stroke-linejoin="round" d="M7 3h10v6a5 5 0 0 1-10 0zM7 5H3v2a4 4 0 0 0 4 4M17 5h4v2a4 4 0 0 1-4 4M12 14v4M8 21h8M10 18h4"/></svg>
-Rankings
-</a>
-<a href="#" id="apiLink">
-<svg viewBox="0 0 24 24"><path stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M10 13l-2 2 2 2M14 13l2 2-2 2"/></svg>
-API Docs
-</a>
-</nav>
-<div class="dh">Discords</div>
-<div class="dg" id="dg"></div>
-</aside>
 
-<script>
-"use strict";
+<button
+class="admin-tab"
+data-admin-section="accounts"
+type="button"
+>
+Accounts
+</button>
 
-const M=[["Overall","overall"],["Vanilla","vanilla"],["UHC","uhc"],["Pot","pot"],["NethOP","nethop"],["SMP","smp"],["Sword","sword"],["Axe","axe"],["Mace","mace"]];
-const TI=["HT1","LT1","HT2","LT2","HT3","LT3","HT4","LT4","HT5","LT5"];
-const TIER_POINTS=[60,45,30,20,10,6,4,2,1,0];
-const REGIONS={NA:"North America",EU:"Europe",AS:"Asia",OC:"Oceania"};
-const REGION_COLORS={NA:"#e0555f",EU:"#7bdc7b",AS:"#d9b880",OC:"#b98ab0"};
-const CHEV_ONE='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>';
-const CHEV_TWO='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 11l6-6 6 6M6 19l6-6 6 6"/></svg>';
+<button
+class="admin-tab"
+data-admin-section="players"
+type="button"
+>
+Players
+</button>
 
-const I=k=>`<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-${k}"></use></svg>`;
-
-const tabs=document.getElementById("tabs");
-const list=document.getElementById("list");
-const q=document.getElementById("q");
-const profile=document.getElementById("profile");
-const menuOverlay=document.getElementById("ov");
-
-let mode="Overall";
-
-const fallbackPlayers=[
-{n:"Hikerr",r:"NA",t:"LT3",tiers:{vanilla:5,uhc:7,pot:3,nethop:6,smp:7,sword:4,axe:5,mace:6}},
-{n:"Radlus",r:"NA",t:"HT4",tiers:{vanilla:6,uhc:7,pot:5,nethop:7,smp:6,sword:6,axe:7,mace:7}},
-{n:"Capitalizatlon",r:"EU",t:"LT4",tiers:{vanilla:7,uhc:8,pot:6,nethop:8,smp:7,sword:7,axe:8,mace:8}}
-];
-
-let D=[...fallbackPlayers];
-const G=M.slice(1);
-
-M.forEach(m=>{
-const button=document.createElement("button");
-button.className="tab";
-button.type="button";
-button.setAttribute("role","tab");
-button.setAttribute("aria-selected",m[0]==="Overall"?"true":"false");
-button.dataset.m=m[0];
-button.innerHTML=I(m[1])+m[0];
-button.addEventListener("click",()=>{
-closeProfile();
-mode=m[0];
-render();
-});
-tabs.appendChild(button);
-});
-
-document.getElementById("dg").innerHTML=G.map(m=>`<a href="#" aria-label="${escapeHTML(m[0])} Discord" onclick="return false">${I(m[1])}</a>`).join("");
-
-function getPlayerPoints(player){
-if(!player||!player.tiers)return 0;
-return Object.values(player.tiers).reduce((total,value)=>total+(TIER_POINTS[value]??0),0);
-}
-
-function getPlayerPosition(player){
-const ranked=[...D].sort((a,b)=>getPlayerPoints(b)-getPlayerPoints(a));
-const index=ranked.findIndex(p=>p.n.toLowerCase()===player.n.toLowerCase());
-return index===-1?"—":index+1;
-}
-
-function combatTitle(pts){
-return pts>=400?"Combat Grandmaster":pts>=250?"Combat Master":pts>=120?"Combat Ace":pts>=50?"Combat Specialist":"Combat Cadet";
-}
-
-function openProfile(name){
-const player=D.find(p=>p.n.toLowerCase()===String(name).toLowerCase());
-if(!player)return;
-
-const points=getPlayerPoints(player);
-
-document.getElementById("profileName").textContent=player.n;
-document.getElementById("profileTitle").textContent=combatTitle(points);
-document.getElementById("profileRegion").textContent=REGIONS[player.r]||player.r||"";
-document.getElementById("profileRank").textContent=getPlayerPosition(player)+".";
-document.getElementById("profilePoints").textContent="("+points+" points)";
-document.getElementById("profileNameMC").href="https://namemc.com/profile/"+encodeURIComponent(player.n);
-
-const initial=document.getElementById("profileInitial");
-const skin=document.getElementById("profileSkin");
-
-initial.textContent=player.n[0].toUpperCase();
-initial.style.display="";
-skin.style.display="";
-
-skin.onload=()=>{initial.style.display="none"};
-skin.onerror=()=>{
-skin.style.display="none";
-};
-
-skin.src="https://skinrender.dev/render/"+encodeURIComponent(player.n)+"/bust?size=240&crop=true&yaw=-15";
-
-const profileKeys=["vanilla","uhc","pot","nethop","smp","sword","axe","mace"];
-
-document.getElementById("profileTiers").innerHTML=profileKeys.map((key,index)=>{
-const v=player.tiers?.[key];
-
-return `<div class="ptier" style="--profile-tier-index:${index}">
-<div class="c">${I(key)}</div>
-<b>${v==null?"—":TI[v]}</b>
-</div>`;
-}).join("");
-
-profile.classList.add("active");
-}
-
-function closeProfile(){
-profile.classList.remove("active");
-}
-
-document.getElementById("profileClose").addEventListener("click",closeProfile);
-
-profile.addEventListener("click",e=>{
-if(e.target===profile)closeProfile();
-});
-
-window.addEventListener("keydown",e=>{
-if(e.key==="Escape"){
-closeProfile();
-closeAdminPanel();
-}
-});
-
-function render(){
-[...tabs.children].forEach(button=>{
-const active=button.dataset.m===mode;
-button.classList.toggle("on",active);
-button.setAttribute("aria-selected",active?"true":"false");
-});
-
-const search=q.value.trim().toLowerCase();
-
-let players=D.filter(player=>
-player.n.toLowerCase().includes(search)
-);
-
-const key=(M.find(m=>m[0]===mode)||[])[1];
-
-if(mode!=="Overall"){
-players=players
-.filter(player=>player.tiers&&player.tiers[key]!=null)
-.sort((a,b)=>a.tiers[key]-b.tiers[key]);
-}
-
-document.querySelector(".cols").style.display=mode==="Overall"?"":"none";
-
-if(!players.length){
-list.innerHTML=`<div class="empty">${search?"No players found.":"No players ranked yet."}</div>`;
-return;
-}
-
-if(mode!=="Overall"){
-list.innerHTML=`<div class="board">${[1,2,3,4,5].map(n=>{
-const rows=players
-.filter(p=>Math.floor(p.tiers[key]/2)===n-1)
-.map((p,i)=>{
-const hi=p.tiers[key]%2===0;
-
-return `<div class="prow ${hi?"hi":"lo"}"
-style="--rc:${REGION_COLORS[p.r]||"#4a5568"};--i:${i}"
-data-player="${escapeHTML(p.n)}"
-tabindex="0"
-role="button"
-aria-label="Open ${escapeHTML(p.n)} profile">
-
-<span class="pav">
-<img src="https://skinrender.dev/render/${encodeURIComponent(p.n)}/bust?size=64&crop=true&yaw=-15"
-alt=""
-loading="lazy"
-onerror="this.style.display='none'">
-</span>
-
-<span class="pn">${escapeHTML(p.n)}</span>
-
-${hi?CHEV_TWO:CHEV_ONE}
-
-</div>`;
-}).join("");
-
-return `<section class="tcol tc${n}">
-<div class="thead">${I("overall")}Tier ${n}</div>
-${rows}
-</section>`;
-}).join("")}</div>`;
-
-list.querySelectorAll(".prow").forEach(row=>{
-const playerName=row.dataset.player;
-
-row.addEventListener("click",()=>openProfile(playerName));
-
-row.addEventListener("keydown",event=>{
-if(event.key==="Enter"||event.key===" "){
-event.preventDefault();
-openProfile(playerName);
-}
-});
-});
-
-return;
-}
-
-list.innerHTML=players.map((player,index)=>{
-const entries=mode==="Overall"
-?Object.entries(player.tiers||{}).sort((a,b)=>a[1]-b[1])
-:[[key,player.tiers[key]]];
-
-const tierHTML=entries.map(([tierKey,value],tierIndex)=>`
-<div class="t k${Math.min(5,Math.floor(value/2))}" style="--tier-index:${tierIndex}">
-<div class="c">${I(tierKey)}</div>
-<div class="b">${TI[value]||"Unranked"}</div>
-</div>
-`).join("");
-
-return `
-<article class="card"
-style="--card-index:${index}"
-data-player="${escapeHTML(player.n)}"
-tabindex="0"
-role="button"
-aria-label="Open ${escapeHTML(player.n)} profile">
-
-<div class="top">
-
-<div class="rk ${index<3?"p"+(index+1):"px"}">
-<b>${index+1}.</b>
-<img class="head"
-src="https://skinrender.dev/render/${encodeURIComponent(player.n)}/bust?size=160&crop=true&yaw=-15"
-alt="${escapeHTML(player.n)} Minecraft character"
-loading="lazy"
-onerror="this.style.display='none'">
-</div>
-
-<div style="min-width:0">
-<div class="nm">${escapeHTML(player.n)}</div>
-<div class="tt">${I("rank")}<span>${escapeHTML(player.t||"Unranked")}</span></div>
-</div>
-
-<div class="reg ${escapeHTML(player.r||"")}">${escapeHTML(player.r||"—")}</div>
+<button
+class="admin-tab"
+data-admin-section="tests"
+type="button"
+>
+Tests
+</button>
 
 </div>
 
-<div class="tl">TIERS</div>
-<div class="tiers">${tierHTML}</div>
-
-</article>`;
-}).join("");
-
-list.querySelectorAll(".card").forEach(card=>{
-const playerName=card.dataset.player;
-
-card.addEventListener("click",()=>openProfile(playerName));
-
-card.addEventListener("keydown",event=>{
-if(event.key==="Enter"||event.key===" "){
-event.preventDefault();
-openProfile(playerName);
-}
-});
-});
-}
-
-function escapeHTML(value){
-return String(value)
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;")
-.replaceAll('"',"&quot;")
-.replaceAll("'","&#039;");
-}
-
-q.addEventListener("input",()=>{
-closeProfile();
-render();
-});
-
-async function load(){
-try{
-const response=await fetch("https://frosttiers.onrender.com/api/players");
-
-if(!response.ok)throw new Error("API unavailable");
-
-const data=await response.json();
-
-if(Array.isArray(data)&&data.length)D=data;
-
-}catch(error){
-D=[...fallbackPlayers];
-}
-
-render();
-}
-
-window.loadPlayers=load;
-
-function openMenu(){
-document.body.classList.add("open");
-}
-
-function closeMenu(){
-document.body.classList.remove("open");
-}
-
-document.getElementById("mb").addEventListener("click",openMenu);
-document.getElementById("xb").addEventListener("click",closeMenu);
-menuOverlay.addEventListener("click",closeMenu);
-
-document.getElementById("rankingsLink").addEventListener("click",event=>{
-event.preventDefault();
-closeMenu();
-closeProfile();
-});
-
-document.getElementById("apiLink").addEventListener("click",event=>{
-event.preventDefault();
-closeMenu();
-showInfo();
-});
-
-function showInfo(){
-alert("FrostTiers is a Minecraft PvP tier-list project. Rankings are based on player testing and recorded results.");
-}
-
-
-/* =========================================================
-   FROSTTIERS ACCOUNT SYSTEM
-   ========================================================= */
-
-let currentAccount=null;
-
-const authModal=document.getElementById("authModal");
-const authClose=document.getElementById("authClose");
-const accountButton=document.getElementById("accountButton");
-const accountButtonText=document.getElementById("accountButtonText");
-const authForms=document.getElementById("authForms");
-const authAccount=document.getElementById("authAccount");
-const authTitle=document.getElementById("authTitle");
-const authSub=document.getElementById("authSub");
-const authError=document.getElementById("authError");
-const authSwitch=document.getElementById("authSwitch");
-
-const loginForm=document.getElementById("loginForm");
-const signupForm=document.getElementById("signupForm");
-
-const loginUsername=document.getElementById("loginUsername");
-const loginPassword=document.getElementById("loginPassword");
-
-const signupMinecraft=document.getElementById("signupMinecraft");
-const signupDiscord=document.getElementById("signupDiscord");
-const signupPassword=document.getElementById("signupPassword");
-const signupConfirm=document.getElementById("signupConfirm");
-
-const loginSubmit=document.getElementById("loginSubmit");
-const signupSubmit=document.getElementById("signupSubmit");
-const logoutButton=document.getElementById("logoutButton");
-
-const loggedInRole=document.getElementById("loggedInRole");
-const adminPanelButton=document.getElementById("adminPanelButton");
-
-const adminModal=document.getElementById("adminModal");
-const adminClose=document.getElementById("adminClose");
-const adminUsersList=document.getElementById("adminUsersList");
-const adminPlayersList=document.getElementById("adminPlayersList");
-
-function getAccountFromResponse(data){
-if(!data)return null;
-return data.user||data.account||(data.minecraftUsername?data:null);
-}
-
-function normalizeRole(user){
-return String(
-user?.role||
-user?.permissions?.role||
-"user"
-).toLowerCase();
-}
-
-function canUseAdminPanel(user){
-return ["tester","moderator","admin"].includes(normalizeRole(user));
-}
-
-function isAdmin(user){
-return normalizeRole(user)==="admin";
-}
-
-function formatRole(role){
-const roles={
-user:"User",
-tester:"Tester",
-moderator:"Moderator",
-admin:"Admin"
-};
-
-return roles[String(role||"user").toLowerCase()]||"User";
-}
-
-function updateAdminUI(user){
-const role=normalizeRole(user);
-
-if(user&&canUseAdminPanel(user)){
-adminPanelButton.style.display="block";
-}else{
-adminPanelButton.style.display="none";
-}
-
-loggedInRole.textContent=formatRole(role);
-}
-
-function updateAuthUI(user){
-currentAccount=user||null;
-
-if(currentAccount){
-authForms.style.display="none";
-authAccount.classList.add("active");
-
-document.getElementById("loggedInMinecraft").textContent=
-currentAccount.minecraftUsername||
-currentAccount.username||
-"Account";
-
-document.getElementById("loggedInDiscord").textContent=
-currentAccount.discordUsername
-?`Discord: ${currentAccount.discordUsername}`
-:"";
-
-updateAdminUI(currentAccount);
-
-accountButtonText.textContent=
-currentAccount.minecraftUsername||
-currentAccount.username||
-"Account";
-
-}else{
-authForms.style.display="";
-authAccount.classList.remove("active");
-accountButtonText.textContent="Account";
-
-updateAdminUI(null);
-}
-}
-
-function clearAuthError(){
-authError.textContent="";
-authError.classList.remove("show");
-}
-
-function showAuthError(message){
-authError.textContent=message||"Something went wrong.";
-authError.classList.add("show");
-}
-
-function setAuthMode(mode){
-clearAuthError();
-
-if(mode==="signup"){
-authTitle.textContent="Create Account";
-authSub.textContent="Create your FrostTiers account.";
-loginForm.style.display="none";
-signupForm.style.display="flex";
-authSwitch.textContent="Already have an account? Log in";
-}else{
-authTitle.textContent="Log In";
-authSub.textContent="Log in to your FrostTiers account.";
-loginForm.style.display="flex";
-signupForm.style.display="none";
-authSwitch.textContent="Don't have an account? Sign up";
-}
-}
-
-function openAuth(){
-clearAuthError();
-
-authModal.classList.add("active");
-authModal.setAttribute("aria-hidden","false");
-
-if(currentAccount){
-authForms.style.display="none";
-authAccount.classList.add("active");
-}else{
-authAccount.classList.remove("active");
-authForms.style.display="";
-setAuthMode("login");
-}
-}
-
-function closeAuth(){
-authModal.classList.remove("active");
-authModal.setAttribute("aria-hidden","true");
-clearAuthError();
-}
-
-async function apiRequest(url,options={}){
-const config={
-...options,
-credentials:"include",
-headers:{
-...(options.headers||{}),
-"Content-Type":"application/json"
-}
-};
-
-const endpoint=url.startsWith("/api/")
-?"https://frosttiers.onrender.com"+url
-:url;
-
-const response=await fetch(endpoint,config);
-
-let data=null;
-
-try{
-data=await response.json();
-}catch(error){
-data=null;
-}
-
-if(!response.ok){
-throw new Error(
-data?.message||
-data?.error||
-`Request failed (${response.status})`
-);
-}
-
-return data;
-}
-
-accountButton.addEventListener("click",openAuth);
-
-authClose.addEventListener("click",closeAuth);
-
-authModal.addEventListener("click",event=>{
-if(event.target===authModal)closeAuth();
-});
-
-authSwitch.addEventListener("click",()=>{
-if(signupForm.style.display==="none"){
-setAuthMode("signup");
-}else{
-setAuthMode("login");
-}
-});
-
-
-/* LOGIN */
-
-loginForm.addEventListener("submit",async event=>{
-event.preventDefault();
-clearAuthError();
-
-const minecraftUsername=loginUsername.value.trim();
-const password=loginPassword.value;
-
-if(!minecraftUsername||!password){
-showAuthError("Enter your Minecraft username and password.");
-return;
-}
-
-loginSubmit.disabled=true;
-loginSubmit.textContent="Logging in...";
-
-try{
-
-const data=await apiRequest("/api/auth/login",{
-method:"POST",
-body:JSON.stringify({
-minecraftUsername,
-password
-})
-});
-
-let user=getAccountFromResponse(data);
-
-if(!user){
-try{
-const me=await apiRequest("/api/auth/me",{method:"GET"});
-user=getAccountFromResponse(me);
-}catch(error){}
-}
-
-if(!user){
-throw new Error("Login succeeded, but no account was returned.");
-}
-
-updateAuthUI(user);
-
-loginForm.reset();
-closeAuth();
-
-}catch(error){
-
-showAuthError(
-error.message||
-"Unable to log in."
-);
-
-}finally{
-
-loginSubmit.disabled=false;
-loginSubmit.textContent="Log In";
-
-}
-});
-
-
-/* SIGNUP */
-
-signupForm.addEventListener("submit",async event=>{
-event.preventDefault();
-clearAuthError();
-
-const minecraftUsername=signupMinecraft.value.trim();
-const discordUsername=signupDiscord.value.trim();
-const password=signupPassword.value;
-const confirmPassword=signupConfirm.value;
-
-if(password!==confirmPassword){
-showAuthError("Passwords do not match.");
-return;
-}
-
-if(password.length<8){
-showAuthError("Password must be at least 8 characters.");
-return;
-}
-
-if(!minecraftUsername||!discordUsername){
-showAuthError("Fill in all fields.");
-return;
-}
-
-signupSubmit.disabled=true;
-signupSubmit.textContent="Creating...";
-
-try{
-
-const data=await apiRequest("/api/auth/signup",{
-method:"POST",
-body:JSON.stringify({
-minecraftUsername,
-discordUsername,
-password,
-confirmPassword
-})
-});
-
-let user=getAccountFromResponse(data);
-
-if(!user){
-try{
-const me=await apiRequest("/api/auth/me",{method:"GET"});
-user=getAccountFromResponse(me);
-}catch(error){}
-}
-
-if(user){
-
-updateAuthUI(user);
-signupForm.reset();
-closeAuth();
-
-}else{
-
-signupForm.reset();
-loginUsername.value=minecraftUsername;
-setAuthMode("login");
-
-showAuthError(
-"Account created. Log in with your new account."
-);
-
-}
-
-}catch(error){
-
-showAuthError(
-error.message||
-"Unable to create account."
-);
-
-}finally{
-
-signupSubmit.disabled=false;
-signupSubmit.textContent="Create Account";
-
-}
-});
-
-
-/* LOGOUT */
-
-logoutButton.addEventListener("click",async()=>{
-logoutButton.disabled=true;
-logoutButton.textContent="Logging out...";
-
-try{
-
-await apiRequest("/api/auth/logout",{
-method:"POST",
-body:JSON.stringify({})
-});
-
-}catch(error){
-/* Clear local UI even if logout request fails. */
-}
-
-updateAuthUI(null);
-
-logoutButton.disabled=false;
-logoutButton.textContent="Log Out";
-
-closeAuth();
-});
-
-
-/* =========================================================
-   ADMIN PANEL
-   ========================================================= */
-
-function openAdminPanel(){
-
-if(!currentAccount||!canUseAdminPanel(currentAccount)){
-return;
-}
-
-adminModal.classList.add("active");
-adminModal.setAttribute("aria-hidden","false");
-
-showAdminSection("users");
-}
-
-function closeAdminPanel(){
-
-adminModal.classList.remove("active");
-adminModal.setAttribute("aria-hidden","true");
-
-}
-
-function showAdminSection(section){
-
-document.querySelectorAll(".admin-tab").forEach(button=>{
-button.classList.toggle(
-"active",
-button.dataset.adminSection===section
-);
-});
-
-document.querySelectorAll(".admin-section").forEach(element=>{
-element.classList.remove("active");
-});
-
-const target=document.getElementById(
-"admin"+
-section.charAt(0).toUpperCase()+
-section.slice(1)+
-"Section"
-);
-
-if(target)target.classList.add("active");
-
-if(section==="users"){
-loadAdminUsers();
-}
-
-if(section==="players"){
-loadAdminPlayers();
-}
-
-}
-
-adminPanelButton.addEventListener("click",()=>{
-closeAuth();
-openAdminPanel();
-});
-
-adminClose.addEventListener("click",closeAdminPanel);
-
-adminModal.addEventListener("click",event=>{
-if(event.target===adminModal){
-closeAdminPanel();
-}
-});
-
-document.querySelectorAll(".admin-tab").forEach(button=>{
-button.addEventListener("click",()=>{
-showAdminSection(button.dataset.adminSection);
-});
-});
-
-
-/* ADMIN USERS */
-
-async function loadAdminUsers(){
-
-adminUsersList.innerHTML="<div class='admin-note'>Loading users...</div>";
-
-try{
-
-const data=await apiRequest("/api/users");
-
-const users=
-Array.isArray(data)
-?data
-:data?.users||[];
-
-if(!users.length){
-adminUsersList.innerHTML=
-"<div class='admin-note'>No users found.</div>";
-return;
-}
-
-adminUsersList.innerHTML=users.map(user=>{
-
-const role=normalizeRole(user);
-
-const userId=
-user.id||
-user._id||
-user.userId||
-user.minecraftUsername;
-
-const canChangeRoles=isAdmin(currentAccount);
-
-return `
-<div class="admin-user">
-
-<div class="admin-user-main">
-
-<div class="admin-user-name">
-${escapeHTML(
-user.minecraftUsername||
-user.username||
-"Unknown"
-)}
-</div>
-
-<div class="admin-user-discord">
-${escapeHTML(
-user.discordUsername||
-"No Discord username"
-)}
-</div>
-
-</div>
-
-<div class="admin-user-role">
-
-<select
-class="admin-role-select"
-data-user-id="${escapeHTML(userId)}"
-${canChangeRoles?"":"disabled"}
+<!-- OVERVIEW -->
+
+<div
+class="admin-section active"
+id="adminOverviewSection"
 >
 
-<option value="user" ${role==="user"?"selected":""}>User</option>
-<option value="tester" ${role==="tester"?"selected":""}>Tester</option>
-<option value="moderator" ${role==="moderator"?"selected":""}>Moderator</option>
-<option value="admin" ${role==="admin"?"selected":""}>Admin</option>
+<div class="admin-section-title">
+Dashboard
+</div>
 
+<div
+class="stat-grid"
+id="adminStats"
+>
+
+<div class="stat-card">
+<div class="stat-label">Accounts</div>
+<div class="stat-value" id="statUsers">—</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-label">Players</div>
+<div class="stat-value" id="statPlayers">—</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-label">Tests</div>
+<div class="stat-value" id="statTests">—</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-label">Testers</div>
+<div class="stat-value" id="statTesters">—</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-label">Admins</div>
+<div class="stat-value" id="statAdmins">—</div>
+</div>
+
+</div>
+
+<div class="quick-grid">
+
+<div class="quick-card">
+<h3>Account Management</h3>
+<p>Create accounts, change roles, manage testers and administrators.</p>
+</div>
+
+<div class="quick-card">
+<h3>Player Management</h3>
+<p>Edit regions, tiers, rankings, and remove player records.</p>
+</div>
+
+<div class="quick-card">
+<h3>Test Management</h3>
+<p>Search previous tests and remove incorrect results.</p>
+</div>
+
+<div class="quick-card">
+<h3>Recent Activity</h3>
+<p>View the latest testing activity from FrostTiers.</p>
+</div>
+
+</div>
+
+<div class="admin-section-title">
+Recent Tests
+</div>
+
+<div
+class="recent-list"
+id="adminRecentTests"
+>
+<div class="admin-note">
+Loading recent tests...
+</div>
+</div>
+
+</div>
+
+<!-- ACCOUNTS -->
+
+<div
+class="admin-section"
+id="adminAccountsSection"
+>
+
+<div class="admin-section-title">
+Manage Accounts
+</div>
+
+<div class="admin-actions" style="margin-bottom:12px">
+<button
+class="admin-btn primary"
+id="adminCreateUser"
+type="button"
+>
+Create Account
+</button>
+</div>
+
+<input
+class="admin-search"
+id="adminUserSearch"
+placeholder="Search Minecraft or Discord username..."
+>
+
+<div
+class="admin-list"
+id="adminUsersList"
+>
+<div class="admin-note">
+Loading accounts...
+</div>
+</div>
+
+</div>
+
+<!-- PLAYERS -->
+
+<div
+class="admin-section"
+id="adminPlayersSection"
+>
+
+<div class="admin-section-title">
+Manage Players
+</div>
+
+<input
+class="admin-search"
+id="adminPlayerSearch"
+placeholder="Search players..."
+>
+
+<div
+class="admin-list"
+id="adminPlayersList"
+>
+<div class="admin-note">
+Loading players...
+</div>
+</div>
+
+</div>
+
+<!-- TESTS -->
+
+<div
+class="admin-section"
+id="adminTestsSection"
+>
+
+<div class="admin-section-title">
+Test History
+</div>
+
+<div class="admin-filters">
+
+<input
+class="admin-search"
+id="adminTestSearch"
+placeholder="Search player or tester..."
+style="margin:0"
+>
+
+<select
+class="admin-select"
+id="adminTestMode"
+>
+<option value="">All Gamemodes</option>
+<option value="vanilla">Vanilla</option>
+<option value="uhc">UHC</option>
+<option value="pot">Pot</option>
+<option value="nethop">NethOP</option>
+<option value="smp">SMP</option>
+<option value="sword">Sword</option>
+<option value="axe">Axe</option>
+<option value="mace">Mace</option>
+</select>
+
+<select
+class="admin-select"
+id="adminTestTier"
+>
+<option value="">All Tiers</option>
+<option value="HT1">HT1</option>
+<option value="LT1">LT1</option>
+<option value="HT2">HT2</option>
+<option value="LT2">LT2</option>
+<option value="HT3">HT3</option>
+<option value="LT3">LT3</option>
+<option value="HT4">HT4</option>
+<option value="LT4">LT4</option>
+<option value="HT5">HT5</option>
+<option value="LT5">LT5</option>
 </select>
 
 </div>
 
+<div
+class="admin-list"
+id="adminTestsList"
+>
+<div class="admin-note">
+Loading tests...
 </div>
-`;
-
-}).join("");
-
-adminUsersList
-.querySelectorAll(".admin-role-select")
-.forEach(select=>{
-
-select.addEventListener("change",async()=>{
-await changeUserRole(
-select.dataset.userId,
-select.value
-);
-});
-
-});
-
-}catch(error){
-
-adminUsersList.innerHTML=
-`<div class="admin-error">${escapeHTML(error.message)}</div>`;
-
-}
-
-}
-
-
-/* CHANGE ROLE */
-
-async function changeUserRole(userId,role){
-
-if(!isAdmin(currentAccount)){
-alert("Only admins can change user roles.");
-await loadAdminUsers();
-return;
-}
-
-try{
-
-await apiRequest(
-`/api/users/${encodeURIComponent(userId)}/role`,
-{
-method:"PATCH",
-body:JSON.stringify({
-role
-})
-}
-);
-
-await loadAdminUsers();
-
-}catch(error){
-
-alert(
-error.message||
-"Unable to change user role."
-);
-
-await loadAdminUsers();
-
-}
-
-}
-
-
-/* ADMIN PLAYERS */
-
-async function loadAdminPlayers(){
-
-adminPlayersList.innerHTML=
-"<div class='admin-note'>Loading players...</div>";
-
-try{
-
-const data=await apiRequest("/api/players");
-
-const players=
-Array.isArray(data)
-?data
-:data?.players||[];
-
-if(!players.length){
-
-adminPlayersList.innerHTML=
-"<div class='admin-note'>No players found.</div>";
-
-return;
-}
-
-adminPlayersList.innerHTML=players.map(player=>{
-
-const name=
-player.n||
-player.minecraftUsername||
-player.name||
-"Unknown";
-
-const region=
-player.r||
-player.region||
-"Unknown";
-
-const tier=
-player.t||
-player.tier||
-"Unranked";
-
-return `
-<div class="admin-player">
-
-<div class="admin-player-name">
-${escapeHTML(name)}
-</div>
-
-<div class="admin-player-meta">
-Region: ${escapeHTML(region)}
-&nbsp; • &nbsp;
-Overall: ${escapeHTML(tier)}
 </div>
 
 </div>
-`;
 
-}).join("");
+</div>
+</div>
 
-}catch(error){
+<!-- SIDE MENU OVERLAY -->
 
-adminPlayersList.innerHTML=
-`<div class="admin-error">${escapeHTML(error.message)}</div>`;
+<div class="ov" id="ov"></div>
 
-}
+<!-- SIDE MENU -->
 
-}
+<aside
+class="dr"
+id="dr"
+aria-label="Menu"
+>
 
+<button
+class="x"
+id="xb"
+aria-label="Close menu"
+>
+<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round">
+<path d="M5 5l14 14M19 5L5 19"/>
+</svg>
+</button>
 
-/* ACCOUNT RESTORE */
+<nav>
 
-async function restoreAccount(){
+<a
+class="mu"
+href="#"
+id="homeLink"
+>
+<svg viewBox="0 0 24 24">
+<path stroke-linejoin="round" d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
+</svg>
+Home
+</a>
 
-try{
+<a
+href="#"
+id="rankingsLink"
+>
+<svg viewBox="0 0 24 24">
+<path stroke-linejoin="round" d="M7 3h10v6a5 5 0 0 1-10 0zM7 5H3v2a4 4 0 0 0 4 4M17 5h4v2a4 4 0 0 1-4 4M12 14v4M8 21h8M10 18h4"/>
+</svg>
+Rankings
+</a>
 
-const data=await apiRequest(
-"/api/auth/me",
-{method:"GET"}
-);
+<a
+href="#"
+id="apiLink"
+>
+<svg viewBox="0 0 24 24">
+<path stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M10 13l-2 2 2 2M14 13l2 2-2 2"/>
+</svg>
+API Docs
+</a>
 
-const user=getAccountFromResponse(data);
+</nav>
 
-if(user){
-updateAuthUI(user);
-}else{
-updateAuthUI(null);
-}
+<div class="dh">
+Discords
+</div>
 
-}catch(error){
+<div
+class="dg"
+id="dg"
+></div>
 
-updateAuthUI(null);
+</aside>
 
-}
+<!-- NEW APP JS -->
 
-}
+<script src="app.js"></script>
 
-
-/* START */
-
-updateAuthUI(null);
-restoreAccount();
-
-render();
-load();
-
-</script>
 </body>
 </html>
