@@ -1,1938 +1,1969 @@
-(() => {
-  const API = "https://frosttiers.onrender.com";
+const API = "https://frosttiers.onrender.com";
 
-  const $ = s => document.querySelector(s);
+const MODES = [
+  "vanilla",
+  "uhc",
+  "pot",
+  "nethop",
+  "smp",
+  "sword",
+  "axe",
+  "mace"
+];
 
-  const TI = [
-    "HT1","LT1","HT2","LT2","HT3",
-    "LT3","HT4","LT4","HT5","LT5"
-  ];
+const MODE_NAMES = {
+  vanilla: "Vanilla",
+  uhc: "UHC",
+  pot: "Pot",
+  nethop: "NethOP",
+  smp: "SMP",
+  sword: "Sword",
+  axe: "Axe",
+  mace: "Mace"
+};
 
-  const MODES = [
-    ["vanilla","Vanilla"],
-    ["uhc","UHC"],
-    ["pot","Pot"],
-    ["nethop","NethOP"],
-    ["smp","SMP"],
-    ["sword","Sword"],
-    ["axe","Axe"],
-    ["mace","Mace"]
-  ];
+const TIERS = [
+  "HT1",
+  "LT1",
+  "HT2",
+  "LT2",
+  "HT3",
+  "LT3",
+  "HT4",
+  "LT4",
+  "HT5",
+  "LT5"
+];
 
-  const REG = [
-    ["NA","North America"],
-    ["EU","Europe"],
-    ["AS","Asia"],
-    ["OC","Oceania"],
-    ["SA","South America"],
-    ["AF","Africa"]
-  ];
+const TIER_POINTS = {
+  HT1: 60,
+  LT1: 45,
+  HT2: 30,
+  LT2: 20,
+  HT3: 10,
+  LT3: 6,
+  HT4: 4,
+  LT4: 2,
+  HT5: 1,
+  LT5: 0
+};
 
-  const esc = s =>
-    String(s ?? "").replace(
-      /[&<>"']/g,
-      c => ({
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#39;"
-      }[c])
-    );
+let currentUser = null;
+let players = [];
+let tests = [];
+let adminDashboard = null;
 
-  const opts = (arr, selected) =>
-    arr.map(([v,l]) =>
-      `<option value="${esc(v)}"${v === selected ? " selected" : ""}>${esc(l)}</option>`
-    ).join("");
+function $(selector) {
+  return document.querySelector(selector);
+}
 
-  const modeName = mode =>
-    MODES.find(x => x[0] === mode)?.[1] || mode;
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-  const regionName = region =>
-    REG.find(x => x[0] === region)?.[1] || region;
-
-  const tierIndex = tier =>
-    TI.indexOf(tier);
-
-  const tierName = index =>
-    TI[index] || "Unranked";
-
-  const formatDate = timestamp => {
-    if (!timestamp) return "Unknown";
-
-    return new Date(timestamp).toLocaleString(
-      "en-US",
-      {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit"
-      }
-    );
+async function apiRequest(url, options = {}) {
+  const config = {
+    ...options,
+    credentials: "include",
+    headers: {
+      ...(options.headers || {}),
+      "Content-Type": "application/json"
+    }
   };
 
-  let me = null;
+  const endpoint =
+    url.startsWith("/api/")
+      ? API + url
+      : url;
 
-  /*
-   * --------------------------------------------------
-   * API
-   * --------------------------------------------------
-   */
+  const response = await fetch(endpoint, config);
 
-  async function api(
-    url,
-    method = "GET",
-    data = undefined
-  ) {
-    const endpoint =
-      url.startsWith("/api/")
-        ? API + url
-        : url;
+  let data = null;
 
-    const config = {
-      method,
-      credentials: "include",
-      headers: {}
-    };
-
-    if (data !== undefined) {
-      config.headers["Content-Type"] =
-        "application/json";
-
-      config.body =
-        JSON.stringify(data);
-    }
-
-    const response =
-      await fetch(
-        endpoint,
-        config
-      );
-
-    let result = {};
-
-    try {
-      result =
-        await response.json();
-    } catch {}
-
-    if (!response.ok) {
-      throw new Error(
-        result.error ||
-        result.message ||
-        `Request failed (${response.status})`
-      );
-    }
-
-    return result;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
   }
 
-  /*
-   * --------------------------------------------------
-   * MODAL
-   * --------------------------------------------------
-   */
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+      data?.error ||
+      `Request failed (${response.status})`
+    );
+  }
 
-  document.body.insertAdjacentHTML(
-    "beforeend",
-    `
-      <dialog id="dlg">
-        <button
-          class="dx"
-          aria-label="Close"
-          type="button"
-        >×</button>
+  return data;
+}
 
-        <div id="dc"></div>
-      </dialog>
-    `
+const api = apiRequest;
+
+function isAdmin() {
+  return currentUser?.role === "admin";
+}
+
+function isModerator() {
+  return ["moderator", "admin"].includes(
+    currentUser?.role
   );
+}
 
-  const dlg = $("#dlg");
-  const dc = $("#dc");
-
-  $(".dx").onclick = () =>
-    dlg.close();
-
-  dlg.addEventListener(
-    "click",
-    e => {
-      if (
-        e.target === dlg
-      ) {
-        dlg.close();
-      }
-    }
+function isStaff() {
+  return ["tester", "moderator", "admin"].includes(
+    currentUser?.role
   );
+}
 
-  const open = html => {
-    dc.innerHTML = html;
+function canRank() {
+  return ["tester", "moderator", "admin"].includes(
+    currentUser?.role
+  );
+}
 
-    if (!dlg.open) {
-      dlg.showModal();
+function roleName(role) {
+  return {
+    user: "User",
+    tester: "Tester",
+    moderator: "Moderator",
+    admin: "Administrator"
+  }[role] || "User";
+}
+
+function tierFromValue(value) {
+  if (typeof value === "number") {
+    return TIERS[value] || "";
+  }
+
+  return String(value || "").toUpperCase();
+}
+
+function getPlayerPoints(player) {
+  if (!player?.tiers) return 0;
+
+  return MODES.reduce((total, mode) => {
+    const tier = tierFromValue(player.tiers[mode]);
+
+    return total + (TIER_POINTS[tier] || 0);
+  }, 0);
+}
+
+/* =========================================================
+   AUTH
+========================================================= */
+
+async function loadMe() {
+  try {
+    const data = await api("/api/me");
+
+    currentUser = data.user || null;
+  } catch {
+    currentUser = null;
+  }
+
+  updateMenu();
+}
+
+function updateMenu() {
+  const nav = $(".dr nav");
+
+  if (!nav) return;
+
+  nav.innerHTML = "";
+
+  const home = document.createElement("a");
+  home.href = "#";
+  home.textContent = "Home";
+
+  const rankings = document.createElement("a");
+  rankings.href = "#rankings";
+  rankings.textContent = "Rankings";
+
+  nav.appendChild(home);
+  nav.appendChild(rankings);
+
+  if (isStaff()) {
+    const testButton = document.createElement("button");
+
+    testButton.type = "button";
+    testButton.textContent = "Submit a test";
+    testButton.addEventListener("click", openTestModal);
+
+    nav.appendChild(testButton);
+  }
+
+  if (isStaff()) {
+    const adminButton = document.createElement("button");
+
+    adminButton.type = "button";
+    adminButton.textContent = "Staff panel";
+    adminButton.addEventListener("click", openAdminPanel);
+
+    nav.appendChild(adminButton);
+  }
+
+  if (currentUser) {
+    const account = document.createElement("button");
+
+    account.type = "button";
+    account.textContent =
+      `${currentUser.username} · ${roleName(currentUser.role)}`;
+
+    account.addEventListener("click", openAuthModal);
+
+    nav.appendChild(account);
+
+    const logout = document.createElement("button");
+
+    logout.type = "button";
+    logout.textContent = "Log out";
+
+    logout.addEventListener("click", logoutUser);
+
+    nav.appendChild(logout);
+  } else {
+    const login = document.createElement("button");
+
+    login.type = "button";
+    login.textContent = "Log in / Sign up";
+
+    login.addEventListener("click", openAuthModal);
+
+    nav.appendChild(login);
+  }
+}
+
+/* =========================================================
+   AUTH MODAL
+========================================================= */
+
+function openAuthModal() {
+  const modal = $("#authModal");
+
+  if (!modal) return;
+
+  modal.setAttribute("aria-hidden", "false");
+
+  if (currentUser) {
+    showAccountView();
+  } else {
+    showLoginView();
+  }
+}
+
+function closeAuthModal() {
+  const modal = $("#authModal");
+
+  if (modal) {
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+function showLoginView() {
+  const loginForm = $("#loginForm");
+  const signupForm = $("#signupForm");
+  const title = $("#authTitle");
+  const sub = $("#authSub");
+  const switchButton = $("#authSwitch");
+
+  if (loginForm) loginForm.style.display = "";
+  if (signupForm) signupForm.style.display = "none";
+
+  if (title) title.textContent = "Welcome back";
+  if (sub) sub.textContent = "Log in to your FrostTiers account.";
+
+  if (switchButton) {
+    switchButton.textContent = "Create an account";
+  }
+}
+
+function showSignupView() {
+  const loginForm = $("#loginForm");
+  const signupForm = $("#signupForm");
+  const title = $("#authTitle");
+  const sub = $("#authSub");
+  const switchButton = $("#authSwitch");
+
+  if (loginForm) loginForm.style.display = "none";
+  if (signupForm) signupForm.style.display = "";
+
+  if (title) title.textContent = "Create account";
+  if (sub) sub.textContent = "Create your FrostTiers account.";
+
+  if (switchButton) {
+    switchButton.textContent = "Already have an account?";
+  }
+}
+
+function showAccountView() {
+  const forms = $("#authForms");
+  const account = $("#authAccount");
+
+  if (forms) forms.style.display = "none";
+
+  if (account) {
+    account.style.display = "";
+
+    const minecraft = $("#loggedInMinecraft");
+    const discord = $("#loggedInDiscord");
+    const role = $("#loggedInRole");
+    const adminButton = $("#adminPanelButton");
+
+    if (minecraft) {
+      minecraft.textContent = currentUser.username;
     }
 
-    document.body.classList.remove(
-      "open"
+    if (discord) {
+      discord.textContent =
+        currentUser.discordUsername || "Not set";
+    }
+
+    if (role) {
+      role.textContent = roleName(currentUser.role);
+    }
+
+    if (adminButton) {
+      adminButton.style.display = isStaff()
+        ? ""
+        : "none";
+    }
+  }
+}
+
+async function loginUser(event) {
+  event.preventDefault();
+
+  const username = $("#loginUsername")?.value.trim();
+  const password = $("#loginPassword")?.value;
+
+  const submit = $("#loginSubmit");
+
+  if (!username || !password) return;
+
+  if (submit) submit.disabled = true;
+
+  try {
+    const data = await api("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        username,
+        password
+      })
+    });
+
+    currentUser = data.user;
+
+    closeAuthModal();
+    updateMenu();
+
+    location.reload();
+  } catch (err) {
+    const box = $("#authError");
+
+    if (box) {
+      box.textContent = err.message;
+      box.style.display = "";
+    }
+  } finally {
+    if (submit) submit.disabled = false;
+  }
+}
+
+async function signupUser(event) {
+  event.preventDefault();
+
+  const minecraftUsername =
+    $("#signupMinecraft")?.value.trim();
+
+  const discordUsername =
+    $("#signupDiscord")?.value.trim();
+
+  const password =
+    $("#signupPassword")?.value;
+
+  const confirmPassword =
+    $("#signupConfirm")?.value;
+
+  const submit = $("#signupSubmit");
+
+  if (submit) submit.disabled = true;
+
+  try {
+    const data = await api("/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        minecraftUsername,
+        discordUsername,
+        password,
+        confirmPassword
+      })
+    });
+
+    currentUser = data.user;
+
+    closeAuthModal();
+    updateMenu();
+
+    location.reload();
+  } catch (err) {
+    const box = $("#authError");
+
+    if (box) {
+      box.textContent = err.message;
+      box.style.display = "";
+    }
+  } finally {
+    if (submit) submit.disabled = false;
+  }
+}
+
+async function logoutUser() {
+  try {
+    await api("/api/auth/logout", {
+      method: "POST"
+    });
+  } catch {}
+
+  currentUser = null;
+
+  updateMenu();
+
+  location.reload();
+}
+
+/* =========================================================
+   TEST MODAL
+========================================================= */
+
+function openTestModal() {
+  if (!canRank()) {
+    alert("You do not have permission to rank players.");
+    return;
+  }
+
+  const modal = $("#dlg");
+
+  if (!modal) return;
+
+  modal.setAttribute("aria-hidden", "false");
+
+  const message = $("#msg");
+
+  if (message) {
+    message.textContent = "";
+    message.style.display = "none";
+  }
+
+  loadTestHistory();
+}
+
+function closeTestModal() {
+  const modal = $("#dlg");
+
+  if (modal) {
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+async function submitTest(event) {
+  event.preventDefault();
+
+  if (!canRank()) {
+    showTestMessage(
+      "You do not have permission to rank players.",
+      true
     );
-  };
 
-  const msg = (
-    text,
-    bad = false
-  ) => {
-    const el = $("#msg");
+    return;
+  }
 
-    if (!el) return;
+  const player = $("#player")?.value.trim();
+  const mode = $("#mode")?.value;
+  const tier = $("#tier")?.value;
+  const region = $("#region")?.value;
 
-    el.textContent = text;
-    el.className =
-      bad ? "bad" : "ok";
-  };
+  const button = $("#sw");
 
-  /*
-   * --------------------------------------------------
-   * NAVIGATION
-   * --------------------------------------------------
-   */
+  if (button) button.disabled = true;
 
-  function menu() {
-    const nav =
-      $(".dr nav");
+  try {
+    const result = await api("/api/tests", {
+      method: "POST",
+      body: JSON.stringify({
+        player,
+        mode,
+        tier,
+        region
+      })
+    });
 
-    if (!nav) return;
-
-    nav
-      .querySelectorAll(
-        ".acct"
-      )
-      .forEach(
-        x => x.remove()
-      );
-
-    const link = (
-      action,
-      text
-    ) =>
-      `<a class="acct" href="#" data-a="${action}">${text}</a>`;
-
-    let html = "";
-
-    if (me) {
-      if (
-        me.role !== "user"
-      ) {
-        html += link(
-          "test",
-          "Submit a test"
-        );
-      }
-
-      if (
-        me.role === "admin"
-      ) {
-        html += link(
-          "admin",
-          "Admin panel"
-        );
-      }
-
-      html += link(
-        "out",
-        `Log out (@${esc(me.username)})`
-      );
-    } else {
-      html += link(
-        "login",
-        "Log in / Sign up"
-      );
-    }
-
-    nav.insertAdjacentHTML(
-      "beforeend",
-      html
+    showTestMessage(
+      `${player} ranked ${tier} in ${MODE_NAMES[mode]}.`,
+      false
     );
-  }
 
-  const drawer =
-    $(".dr");
-
-  if (drawer) {
-    drawer.addEventListener(
-      "click",
-      async e => {
-        const a =
-          e.target.closest(
-            "[data-a]"
-          );
-
-        if (!a) return;
-
-        e.preventDefault();
-
-        const action =
-          a.dataset.a;
-
-        if (
-          action ===
-          "login"
-        ) {
-          auth("login");
-        }
-
-        if (
-          action ===
-          "test"
-        ) {
-          testView();
-        }
-
-        if (
-          action ===
-          "admin"
-        ) {
-          adminView();
-        }
-
-        if (
-          action ===
-          "out"
-        ) {
-          try {
-            await api(
-              "/api/auth/logout",
-              "POST"
-            );
-          } catch {}
-
-          me = null;
-
-          menu();
-
-          document.body.classList.remove(
-            "open"
-          );
-        }
-      }
-    );
-  }
-
-  /*
-   * --------------------------------------------------
-   * AUTH
-   * --------------------------------------------------
-   */
-
-  function auth(
-    mode = "login"
-  ) {
-    const register =
-      mode === "register";
-
-    open(`
-      <h2>
-        ${register
-          ? "Create account"
-          : "Log in"}
-      </h2>
-
-      <form id="f">
-
-        <label>
-          Minecraft username
-          <input
-            name="minecraftUsername"
-            autocomplete="username"
-            required
-            minlength="3"
-            maxlength="16"
-            pattern="[A-Za-z0-9_]{3,16}"
-          >
-        </label>
-
-        ${
-          register
-            ? `
-              <label>
-                Discord username
-                <input
-                  name="discordUsername"
-                  required
-                  minlength="2"
-                  maxlength="100"
-                >
-              </label>
-            `
-            : ""
-        }
-
-        <label>
-          Password
-          <input
-            name="password"
-            type="password"
-            autocomplete="${
-              register
-                ? "new-password"
-                : "current-password"
-            }"
-            required
-            minlength="${
-              register ? 8 : 1
-            }"
-          >
-        </label>
-
-        ${
-          register
-            ? `
-              <label>
-                Confirm password
-                <input
-                  name="confirmPassword"
-                  type="password"
-                  autocomplete="new-password"
-                  required
-                  minlength="8"
-                >
-              </label>
-            `
-            : ""
-        }
-
-        <button
-          class="go"
-          type="submit"
-        >
-          ${
-            register
-              ? "Create account"
-              : "Log in"
-          }
-        </button>
-
-        <div id="msg"></div>
-      </form>
-
-      <p class="sw">
-        ${
-          register
-            ? "Already have an account?"
-            : "New here?"
-        }
-
-        <a
-          href="#"
-          id="sw"
-        >
-          ${
-            register
-              ? "Log in"
-              : "Create an account"
-          }
-        </a>
-      </p>
-    `);
-
-    $("#sw").onclick =
-      e => {
-        e.preventDefault();
-
-        auth(
-          register
-            ? "login"
-            : "register"
-        );
-      };
-
-    $("#f").onsubmit =
-      async e => {
-        e.preventDefault();
-
-        const data =
-          Object.fromEntries(
-            new FormData(
-              e.target
-            )
-          );
-
-        try {
-          const result =
-            await api(
-              register
-                ? "/api/auth/signup"
-                : "/api/auth/login",
-              "POST",
-              data
-            );
-
-          me =
-            result.user;
-
-          menu();
-
-          dlg.close();
-
-          if (
-            me.role ===
-            "admin"
-          ) {
-            setTimeout(
-              adminView,
-              150
-            );
-          }
-        } catch (error) {
-          msg(
-            error.message,
-            true
-          );
-        }
-      };
-  }
-
-  /*
-   * --------------------------------------------------
-   * TEST SUBMISSION
-   * --------------------------------------------------
-   */
-
-  function testView() {
-    open(`
-      <h2>Submit a test result</h2>
-
-      <form id="f">
-
-        <label>
-          Minecraft username
-          <input
-            name="player"
-            required
-            pattern="[A-Za-z0-9_]{3,16}"
-            maxlength="16"
-          >
-        </label>
-
-        <label>
-          Region
-          <select name="region">
-            ${opts(REG)}
-          </select>
-        </label>
-
-        <label>
-          Gamemode
-          <select name="mode">
-            ${opts(MODES)}
-          </select>
-        </label>
-
-        <label>
-          Tier earned
-          <select name="tier">
-            ${TI.map(
-              t =>
-                `<option value="${t}">${t}</option>`
-            ).join("")}
-          </select>
-        </label>
-
-        <button
-          class="go"
-          type="submit"
-        >
-          Submit result
-        </button>
-
-        <div id="msg"></div>
-      </form>
-
-      <h3>Recent tests</h3>
-
-      <div
-        id="hist"
-        class="list"
-      >
-        Loading...
-      </div>
-    `);
-
-    hist();
-
-    $("#f").onsubmit =
-      async e => {
-        e.preventDefault();
-
-        try {
-          const result =
-            await api(
-              "/api/tests",
-              "POST",
-              Object.fromEntries(
-                new FormData(
-                  e.target
-                )
-              )
-            );
-
-          msg(
-            result.webhook
-              ? "Saved and posted to Discord."
-              : "Saved, but the Discord post failed.",
-            !result.webhook
-          );
-
-          e.target.player.value =
-            "";
-
-          if (
-            window.loadPlayers
-          ) {
-            window.loadPlayers();
-          }
-
-          hist();
-        } catch (error) {
-          msg(
-            error.message,
-            true
-          );
-        }
-      };
-  }
-
-  async function hist() {
-    try {
-      const tests =
-        await api(
-          "/api/tests"
-        );
-
-      const el =
-        $("#hist");
-
-      if (!el) return;
-
-      el.innerHTML =
-        tests.length
-          ? tests
-              .slice(0, 30)
-              .map(
-                test =>
-                  `
-                  <div class="row">
-                    <span>
-                      <b>
-                        ${esc(
-                          test.player
-                        )}
-                      </b>
-
-                      ${esc(
-                        modeName(
-                          test.mode
-                        )
-                      )}
-
-                      ${esc(
-                        test.tier
-                      )}
-                    </span>
-
-                    <small>
-                      @${esc(
-                        test.by
-                      )}
-                    </small>
-                  </div>
-                  `
-              )
-              .join("")
-          : "No tests yet.";
-    } catch {
-      const el =
-        $("#hist");
-
-      if (el) {
-        el.textContent =
-          "Unable to load tests.";
-      }
-    }
-  }
-
-  /*
-   * --------------------------------------------------
-   * ADMIN PANEL
-   * --------------------------------------------------
-   */
-
-  async function adminView() {
-    if (
-      !me ||
-      me.role !== "admin"
-    ) {
-      return auth("login");
+    if ($("#f")) {
+      $("#f").reset();
     }
 
-    open(`
-      <div class="admin-head">
+    await loadPlayers();
+    await loadTestHistory();
+
+    if (adminDashboard) {
+      await loadAdminDashboard();
+    }
+  } catch (err) {
+    showTestMessage(err.message, true);
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+function showTestMessage(message, isError) {
+  const box = $("#msg");
+
+  if (!box) return;
+
+  box.textContent = message;
+  box.style.display = "";
+  box.className = isError
+    ? "test-error"
+    : "test-success";
+}
+
+async function loadTestHistory() {
+  const history = $("#hist");
+
+  if (!history) return;
+
+  try {
+    const data = await api("/api/tests");
+
+    const items = Array.isArray(data.tests)
+      ? data.tests.slice(0, 10)
+      : [];
+
+    if (!items.length) {
+      history.innerHTML =
+        `<div class="admin-note">No tests yet.</div>`;
+
+      return;
+    }
+
+    history.innerHTML = items.map(test => `
+      <div class="recent-item">
         <div>
-          <h2>Admin panel</h2>
-          <p class="muted">
-            Manage FrostTiers from one place.
-          </p>
+          <strong>${escapeHTML(test.player)}</strong>
+          <span>${escapeHTML(
+            MODE_NAMES[test.mode] || test.mode
+          )}</span>
         </div>
+        <b>${escapeHTML(test.tier)}</b>
       </div>
-
-      <div
-        class="admin-tabs"
-        role="tablist"
-      >
-        <button
-          type="button"
-          class="admin-tab active"
-          data-tab="overview"
-        >
-          Overview
-        </button>
-
-        <button
-          type="button"
-          class="admin-tab"
-          data-tab="accounts"
-        >
-          Accounts
-        </button>
-
-        <button
-          type="button"
-          class="admin-tab"
-          data-tab="players"
-        >
-          Players
-        </button>
-
-        <button
-          type="button"
-          class="admin-tab"
-          data-tab="tests"
-        >
-          Tests
-        </button>
+    `).join("");
+  } catch (err) {
+    history.innerHTML = `
+      <div class="admin-note">
+        ${escapeHTML(err.message)}
       </div>
+    `;
+  }
+}
 
-      <div id="admin-content">
-        Loading...
-      </div>
-    `);
+/* =========================================================
+   PLAYERS
+========================================================= */
 
-    const tabs =
-      dc.querySelectorAll(
-        ".admin-tab"
-      );
+async function loadPlayers() {
+  try {
+    const data = await api("/api/players");
 
-    tabs.forEach(
-      button => {
-        button.onclick =
-          () => {
-            tabs.forEach(
-              x =>
-                x.classList.remove(
-                  "active"
-                )
-            );
+    players = Array.isArray(data.players)
+      ? data.players
+      : [];
 
-            button.classList.add(
-              "active"
-            );
+    renderPlayers();
+  } catch (err) {
+    console.error("Could not load players:", err);
+  }
+}
 
-            adminTab(
-              button.dataset.tab
-            );
-          };
-      }
-    );
+function renderPlayers() {
+  const list = $("#list");
 
-    await adminTab(
-      "overview"
+  if (!list) return;
+
+  const query =
+    $("#q")?.value.trim().toLowerCase() || "";
+
+  let filtered = players;
+
+  if (query) {
+    filtered = players.filter(player =>
+      player.name.toLowerCase().includes(query)
     );
   }
 
-  async function adminTab(
-    tab
-  ) {
-    const content =
-      $("#admin-content");
+  list.innerHTML = filtered.map(player => {
+    const points =
+      typeof player.points === "number"
+        ? player.points
+        : getPlayerPoints(player);
 
-    if (!content) return;
+    return `
+      <div class="player-row">
+        <button
+          type="button"
+          class="player-button"
+          data-player="${escapeHTML(player.name)}"
+        >
+          <span>${escapeHTML(player.name)}</span>
+          <small>${escapeHTML(player.region || "NA")}</small>
+        </button>
 
-    content.innerHTML =
-      `<div class="admin-loading">Loading...</div>`;
+        <strong>${points} pts</strong>
+      </div>
+    `;
+  }).join("");
 
-    try {
-      if (
-        tab ===
-        "overview"
-      ) {
-        await adminOverview(
-          content
-        );
-      }
+  list.querySelectorAll("[data-player]").forEach(button => {
+    button.addEventListener("click", () => {
+      openPlayerProfile(button.dataset.player);
+    });
+  });
+}
 
-      if (
-        tab ===
-        "accounts"
-      ) {
-        await adminAccounts(
-          content
-        );
-      }
+/* =========================================================
+   PLAYER PROFILE
+========================================================= */
 
-      if (
-        tab ===
-        "players"
-      ) {
-        await adminPlayers(
-          content
-        );
-      }
+function openPlayerProfile(username) {
+  const player = players.find(
+    candidate =>
+      candidate.name.toLowerCase() ===
+      username.toLowerCase()
+  );
 
-      if (
-        tab ===
-        "tests"
-      ) {
-        await adminTests(
-          content
-        );
-      }
-    } catch (error) {
-      content.innerHTML = `
-        <div class="admin-error">
-          ${esc(
-            error.message
-          )}
+  if (!player) return;
+
+  const profile = $("#profile");
+
+  if (!profile) return;
+
+  profile.setAttribute("aria-hidden", "false");
+
+  const initial = $("#profileInitial");
+  const name = $("#profileName");
+  const title = $("#profileTitle");
+  const region = $("#profileRegion");
+  const nameMC = $("#profileNameMC");
+  const rank = $("#profileRank");
+  const points = $("#profilePoints");
+  const tiers = $("#profileTiers");
+
+  if (initial) {
+    initial.textContent =
+      player.name.charAt(0).toUpperCase();
+  }
+
+  if (name) name.textContent = player.name;
+
+  if (title) {
+    title.textContent = "FrostTiers Player";
+  }
+
+  if (region) {
+    region.textContent = player.region || "NA";
+  }
+
+  if (nameMC) {
+    nameMC.textContent = player.name;
+  }
+
+  if (points) {
+    points.textContent =
+      `${getPlayerPoints(player)} pts`;
+  }
+
+  if (rank) {
+    rank.textContent = "Overall";
+  }
+
+  if (tiers) {
+    tiers.innerHTML = MODES.map(mode => {
+      const tier = tierFromValue(player.tiers?.[mode]);
+
+      return `
+        <div class="tier-row">
+          <span>${MODE_NAMES[mode]}</span>
+          <strong>${escapeHTML(
+            tier || "Unranked"
+          )}</strong>
         </div>
       `;
-    }
+    }).join("");
+  }
+}
+
+function closePlayerProfile() {
+  const profile = $("#profile");
+
+  if (profile) {
+    profile.setAttribute("aria-hidden", "true");
+  }
+}
+
+/* =========================================================
+   ADMIN PANEL
+========================================================= */
+
+function openAdminPanel() {
+  if (!isStaff()) {
+    alert("Staff access required.");
+    return;
   }
 
-  /*
-   * ADMIN OVERVIEW
-   */
+  const modal = $("#adminModal");
 
-  async function adminOverview(
-    content
-  ) {
-    const data =
-      await api(
-        "/api/admin/dashboard"
-      );
+  if (!modal) return;
 
-    const s =
-      data.stats;
+  modal.setAttribute("aria-hidden", "false");
 
+  setupAdminTabs();
+
+  const active =
+    $(".admin-tab.active") ||
+    $(".admin-tab[data-tab='overview']");
+
+  const tab =
+    active?.dataset.tab ||
+    "overview";
+
+  switchAdminTab(tab);
+}
+
+function closeAdminPanel() {
+  const modal = $("#adminModal");
+
+  if (modal) {
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+function setupAdminTabs() {
+  document.querySelectorAll(".admin-tab").forEach(tab => {
+    if (tab.dataset.bound === "true") return;
+
+    tab.dataset.bound = "true";
+
+    tab.addEventListener("click", () => {
+      switchAdminTab(tab.dataset.tab);
+    });
+  });
+}
+
+async function switchAdminTab(tab) {
+  if (!isStaff()) return;
+
+  document.querySelectorAll(".admin-tab").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.tab === tab
+    );
+  });
+
+  const content = $("#admin-content");
+
+  if (!content) return;
+
+  if (tab === "accounts") {
+    if (!isAdmin()) {
+      content.innerHTML = `
+        <div class="admin-note">
+          <strong>Admins only</strong>
+          <span>
+            Account management is restricted to administrators.
+          </span>
+        </div>
+      `;
+
+      return;
+    }
+
+    await renderAccounts();
+    return;
+  }
+
+  if (tab === "players") {
+    await renderAdminPlayers();
+    return;
+  }
+
+  if (tab === "tests") {
+    await renderAdminTests();
+    return;
+  }
+
+  await renderAdminOverview();
+}
+
+/* =========================================================
+   ADMIN OVERVIEW
+========================================================= */
+
+async function loadAdminDashboard() {
+  try {
+    const result =
+      await api("/api/admin/dashboard");
+
+    adminDashboard = result;
+
+    return result;
+  } catch (err) {
+    console.error(
+      "Admin dashboard error:",
+      err
+    );
+
+    return null;
+  }
+}
+
+async function renderAdminOverview() {
+  const content = $("#admin-content");
+
+  if (!content) return;
+
+  content.innerHTML = `
+    <div class="admin-note">
+      Loading dashboard...
+    </div>
+  `;
+
+  const dashboard =
+    await loadAdminDashboard();
+
+  if (!dashboard) {
     content.innerHTML = `
-      <div class="stat-grid">
+      <div class="admin-note admin-error">
+        Could not load the staff dashboard.
+      </div>
+    `;
 
-        <div class="stat-card">
-          <span>Accounts</span>
-          <strong>${s.users}</strong>
+    return;
+  }
+
+  const stats = dashboard.stats || {};
+
+  const recent =
+    Array.isArray(dashboard.recentTests)
+      ? dashboard.recentTests
+      : [];
+
+  content.innerHTML = `
+    <section class="admin-section">
+      <div class="admin-head">
+        <div>
+          <div class="admin-kicker">
+            ${escapeHTML(roleName(currentUser.role))}
+          </div>
+
+          <h2>Staff Command Center</h2>
+
+          <p>
+            Manage FrostTiers rankings, tests, and staff activity.
+          </p>
         </div>
 
+        <div class="admin-online">
+          <span></span>
+          ${escapeHTML(currentUser.username)}
+        </div>
+      </div>
+
+      <div class="stat-grid">
         <div class="stat-card">
           <span>Players</span>
-          <strong>${s.players}</strong>
+          <strong>${stats.players || 0}</strong>
+          <small>Ranked players</small>
         </div>
 
         <div class="stat-card">
           <span>Tests</span>
-          <strong>${s.tests}</strong>
+          <strong>${stats.tests || 0}</strong>
+          <small>Submitted results</small>
         </div>
 
         <div class="stat-card">
-          <span>Testers</span>
-          <strong>${s.testers}</strong>
+          <span>Staff</span>
+          <strong>${stats.testers || 0}</strong>
+          <small>Testers & staff</small>
         </div>
 
-        <div class="stat-card">
-          <span>Admins</span>
-          <strong>${s.admins}</strong>
-        </div>
+        ${
+          isAdmin()
+            ? `
+              <div class="stat-card">
+                <span>Accounts</span>
+                <strong>${stats.users || 0}</strong>
+                <small>Registered users</small>
+              </div>
+            `
+            : ""
+        }
 
+        ${
+          isAdmin()
+            ? `
+              <div class="stat-card">
+                <span>Admins</span>
+                <strong>${stats.admins || 0}</strong>
+                <small>Administrators</small>
+              </div>
+            `
+            : ""
+        }
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div class="section-title-row">
+        <div>
+          <h3>Quick actions</h3>
+          <p>Jump directly into staff tools.</p>
+        </div>
       </div>
 
-      <div class="admin-section">
-        <div class="section-head">
-          <div>
-            <h3>Recent tests</h3>
-            <p class="muted">
-              Latest tier results submitted.
-            </p>
-          </div>
+      <div class="quick-grid">
+        <button class="quick-card" id="quickRank" type="button">
+          <strong>Rank a player</strong>
+          <span>Submit a new tier result.</span>
+        </button>
 
-          <button
-            class="small-btn"
-            id="open-tests"
-            type="button"
-          >
-            View all
-          </button>
+        <button class="quick-card" id="quickPlayers" type="button">
+          <strong>Manage players</strong>
+          <span>Edit tiers and regions.</span>
+        </button>
+
+        <button class="quick-card" id="quickTests" type="button">
+          <strong>Test history</strong>
+          <span>Review submitted tests.</span>
+        </button>
+
+        ${
+          isAdmin()
+            ? `
+              <button class="quick-card" id="quickAccounts" type="button">
+                <strong>Accounts</strong>
+                <span>Manage staff and users.</span>
+              </button>
+            `
+            : ""
+        }
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div class="section-title-row">
+        <div>
+          <h3>Recent tests</h3>
+          <p>Latest ranking activity.</p>
         </div>
+      </div>
 
-        <div class="admin-list">
-          ${
-            data.recentTests.length
-              ? data.recentTests
-                  .map(
-                    test =>
-                      `
-                      <div class="admin-row">
-                        <div>
-                          <b>
-                            ${esc(
-                              test.player
-                            )}
-                          </b>
+      <div class="recent-list">
+        ${
+          recent.length
+            ? recent.map(test => `
+              <div class="recent-item">
+                <div>
+                  <strong>
+                    ${escapeHTML(test.player)}
+                  </strong>
 
-                          <span class="sub">
-                            ${esc(
-                              modeName(
-                                test.mode
-                              )
-                            )}
-                            ·
-                            ${esc(
-                              test.region
-                            )}
-                          </span>
-                        </div>
-
-                        <div class="row-right">
-                          <strong>
-                            ${esc(
-                              test.tier
-                            )}
-                          </strong>
-
-                          <small>
-                            @${esc(
-                              test.by
-                            )}
-                          </small>
-                        </div>
-                      </div>
-                      `
-                  )
-                  .join("")
-              : `
-                <div class="empty">
-                  No tests yet.
+                  <span>
+                    ${escapeHTML(
+                      MODE_NAMES[test.mode] ||
+                      test.mode
+                    )}
+                    ·
+                    ${escapeHTML(test.region)}
+                    ·
+                    by ${escapeHTML(test.by)}
+                  </span>
                 </div>
-              `
-          }
-        </div>
-      </div>
 
-      <div class="admin-section">
-        <h3>Quick actions</h3>
-
-        <div class="quick-grid">
-
-          <button
-            type="button"
-            class="quick-btn"
-            data-quick="accounts"
-          >
-            <strong>Manage accounts</strong>
-            <span>Create users and change roles.</span>
-          </button>
-
-          <button
-            type="button"
-            class="quick-btn"
-            data-quick="players"
-          >
-            <strong>Manage players</strong>
-            <span>Edit regions and tiers.</span>
-          </button>
-
-          <button
-            type="button"
-            class="quick-btn"
-            data-quick="tests"
-          >
-            <strong>Review tests</strong>
-            <span>Inspect and remove results.</span>
-          </button>
-
-        </div>
-      </div>
-    `;
-
-    $("#open-tests").onclick =
-      () =>
-        adminTab(
-          "tests"
-        );
-
-    content
-      .querySelectorAll(
-        "[data-quick]"
-      )
-      .forEach(
-        button => {
-          button.onclick =
-            () =>
-              adminTab(
-                button.dataset.quick
-              );
-
-          button.addEventListener(
-            "click",
-            () => {
-              content
-                .parentElement
-                ?.querySelectorAll(
-                  ".admin-tab"
-                )
-                .forEach(
-                  x => {
-                    x.classList.toggle(
-                      "active",
-                      x.dataset.tab ===
-                        button.dataset.quick
-                    );
-                  }
-                );
-            }
-          );
-        }
-      );
-  }
-
-  /*
-   * ADMIN ACCOUNTS
-   */
-
-  async function adminAccounts(
-    content
-  ) {
-    const users =
-      await api(
-        "/api/users"
-      );
-
-    content.innerHTML = `
-      <div class="admin-section">
-
-        <div class="section-head">
-          <div>
-            <h3>Accounts</h3>
-            <p class="muted">
-              ${users.length}
-              account${
-                users.length === 1
-                  ? ""
-                  : "s"
-              }
-            </p>
-          </div>
-
-          <button
-            id="create-account"
-            class="small-btn primary"
-            type="button"
-          >
-            + Create account
-          </button>
-        </div>
-
-        <div class="admin-search">
-          <input
-            id="account-search"
-            placeholder="Search Minecraft or Discord username..."
-            autocomplete="off"
-          >
-        </div>
-
-        <div
-          id="account-list"
-          class="admin-list"
-        ></div>
-      </div>
-    `;
-
-    const render =
-      query => {
-        const q =
-          query
-            .trim()
-            .toLowerCase();
-
-        const filtered =
-          users.filter(
-            user =>
-              user.username
-                .toLowerCase()
-                .includes(q) ||
-              String(
-                user.discordUsername ||
-                ""
-              )
-                .toLowerCase()
-                .includes(q) ||
-              user.role
-                .toLowerCase()
-                .includes(q)
-          );
-
-        const list =
-          $("#account-list");
-
-        list.innerHTML =
-          filtered.length
-            ? filtered
-                .map(
-                  user =>
-                    `
-                    <div class="admin-row account-row">
-
-                      <div class="user-main">
-
-                        <div class="avatar">
-                          ${esc(
-                            user.username
-                              .charAt(0)
-                              .toUpperCase()
-                          )}
-                        </div>
-
-                        <div>
-                          <b>
-                            @${esc(
-                              user.username
-                            )}
-                          </b>
-
-                          <span class="sub">
-                            ${
-                              user.discordUsername
-                                ? `Discord: ${esc(
-                                    user.discordUsername
-                                  )}`
-                                : "No Discord username"
-                            }
-                          </span>
-
-                          <small>
-                            Created
-                            ${formatDate(
-                              user.created
-                            )}
-                          </small>
-                        </div>
-
-                      </div>
-
-                      <div class="account-actions">
-
-                        <select
-                          data-role="${esc(
-                            user.id
-                          )}"
-                          aria-label="Role"
-                        >
-                          ${opts(
-                            [
-                              [
-                                "user",
-                                "User"
-                              ],
-                              [
-                                "tester",
-                                "Tester"
-                              ],
-                              [
-                                "admin",
-                                "Admin"
-                              ]
-                            ],
-                            user.role
-                          )}
-                        </select>
-
-                        <button
-                          class="del"
-                          data-delete-user="${esc(
-                            user.id
-                          )}"
-                          type="button"
-                        >
-                          Delete
-                        </button>
-
-                      </div>
-
-                    </div>
-                    `
-                )
-                .join("")
-            : `
-              <div class="empty">
-                No matching accounts.
+                <b>${escapeHTML(test.tier)}</b>
               </div>
-            `;
-      };
-
-    render("");
-
-    $("#account-search").oninput =
-      e =>
-        render(
-          e.target.value
-        );
-
-    $("#create-account").onclick =
-      () =>
-        createAccount();
-
-    content.onchange =
-      async e => {
-        const id =
-          e.target.dataset.role;
-
-        if (!id) return;
-
-        try {
-          await api(
-            `/api/users/${encodeURIComponent(
-              id
-            )}`,
-            "PATCH",
-            {
-              role:
-                e.target.value
-            }
-          );
-
-          await adminAccounts(
-            content
-          );
-        } catch (error) {
-          alert(
-            error.message
-          );
-
-          await adminAccounts(
-            content
-          );
+            `).join("")
+            : `
+              <div class="admin-note">
+                No tests have been submitted yet.
+              </div>
+            `
         }
-      };
+      </div>
+    </section>
+  `;
 
-    content.onclick =
-      async e => {
-        const id =
-          e.target.dataset
-            .deleteUser;
+  $("#quickRank")?.addEventListener(
+    "click",
+    openTestModal
+  );
 
-        if (!id) return;
+  $("#quickPlayers")?.addEventListener(
+    "click",
+    () => switchAdminTab("players")
+  );
 
-        if (
-          !confirm(
-            "Delete this account? This cannot be undone."
-          )
-        ) {
-          return;
-        }
+  $("#quickTests")?.addEventListener(
+    "click",
+    () => switchAdminTab("tests")
+  );
 
-        try {
-          await api(
-            `/api/users/${encodeURIComponent(
-              id
-            )}`,
-            "DELETE"
-          );
+  $("#quickAccounts")?.addEventListener(
+    "click",
+    () => switchAdminTab("accounts")
+  );
+}
 
-          await adminAccounts(
-            content
-          );
-        } catch (error) {
-          alert(
-            error.message
-          );
-        }
-      };
-  }
+/* =========================================================
+   ADMIN ACCOUNTS
+========================================================= */
 
-  function createAccount() {
-    open(`
-      <h2>Create account</h2>
+async function renderAccounts() {
+  const content = $("#admin-content");
 
-      <form id="f">
+  if (!content) return;
 
-        <label>
-          Minecraft username
-          <input
-            name="username"
-            required
-            minlength="3"
-            maxlength="16"
-            pattern="[A-Za-z0-9_]{3,16}"
-          >
-        </label>
-
-        <label>
-          Discord username
-          <input
-            name="discordUsername"
-            maxlength="100"
-          >
-        </label>
-
-        <label>
-          Password
-          <input
-            name="password"
-            type="password"
-            required
-            minlength="8"
-          >
-        </label>
-
-        <label>
-          Role
-          <select name="role">
-            <option value="user">
-              User
-            </option>
-
-            <option value="tester">
-              Tester
-            </option>
-
-            <option value="admin">
-              Admin
-            </option>
-          </select>
-        </label>
-
-        <button
-          class="go"
-          type="submit"
-        >
-          Create account
-        </button>
-
-        <div id="msg"></div>
-
-      </form>
-    `);
-
-    $("#f").onsubmit =
-      async e => {
-        e.preventDefault();
-
-        try {
-          await api(
-            "/api/users",
-            "POST",
-            Object.fromEntries(
-              new FormData(
-                e.target
-              )
-            )
-          );
-
-          dlg.close();
-
-          adminView();
-        } catch (error) {
-          msg(
-            error.message,
-            true
-          );
-        }
-      };
-  }
-
-  /*
-   * ADMIN PLAYERS
-   */
-
-  async function adminPlayers(
-    content
-  ) {
-    const players =
-      await api(
-        "/api/admin/players"
-      );
-
+  if (!isAdmin()) {
     content.innerHTML = `
-      <div class="admin-section">
-
-        <div class="section-head">
-          <div>
-            <h3>Players</h3>
-            <p class="muted">
-              Manage player regions and tiers.
-            </p>
-          </div>
-        </div>
-
-        <div class="admin-search">
-          <input
-            id="player-search"
-            placeholder="Search players..."
-            autocomplete="off"
-          >
-        </div>
-
-        <div
-          id="player-list"
-          class="admin-list"
-        ></div>
-
+      <div class="admin-note">
+        <strong>Admins only</strong>
+        <span>
+          You need administrator permissions to manage accounts.
+        </span>
       </div>
     `;
 
-    const render =
-      query => {
-        const q =
-          query
-            .trim()
-            .toLowerCase();
-
-        const filtered =
-          players.filter(
-            player =>
-              player.name
-                .toLowerCase()
-                .includes(q) ||
-              String(
-                player.region
-              )
-                .toLowerCase()
-                .includes(q)
-          );
-
-        const list =
-          $("#player-list");
-
-        list.innerHTML =
-          filtered.length
-            ? filtered
-                .map(
-                  player =>
-                    `
-                    <div class="admin-row">
-
-                      <div>
-                        <b>
-                          ${esc(
-                            player.name
-                          )}
-                        </b>
-
-                        <span class="sub">
-                          ${esc(
-                            regionName(
-                              player.region
-                            )
-                          )}
-                          ·
-                          ${player.pts}
-                          points
-                        </span>
-
-                        <small>
-                          ${esc(
-                            player.title
-                          )}
-                        </small>
-                      </div>
-
-                      <button
-                        type="button"
-                        class="small-btn"
-                        data-edit-player="${esc(
-                          player.name
-                        )}"
-                      >
-                        Edit
-                      </button>
-
-                    </div>
-                    `
-                )
-                .join("")
-            : `
-              <div class="empty">
-                No players found.
-              </div>
-            `;
-      };
-
-    render("");
-
-    $("#player-search").oninput =
-      e =>
-        render(
-          e.target.value
-        );
-
-    content.onclick =
-      e => {
-        const name =
-          e.target.dataset
-            .editPlayer;
-
-        if (!name) return;
-
-        const player =
-          players.find(
-            x =>
-              x.name ===
-              name
-          );
-
-        if (player) {
-          editPlayer(
-            player
-          );
-        }
-      };
+    return;
   }
 
-  function editPlayer(
-    player
-  ) {
-    open(`
-      <h2>
-        Edit ${esc(
-          player.name
-        )}
-      </h2>
-
-      <form id="f">
-
-        <label>
-          Region
-          <select name="region">
-            ${opts(
-              REG,
-              player.region
-            )}
-          </select>
-        </label>
-
-        <div class="tier-editor">
-
-          ${MODES.map(
-            ([mode,label]) => {
-              const index =
-                player.tiers?.[
-                  mode
-                ];
-
-              return `
-                <label>
-                  ${esc(label)}
-
-                  <select
-                    name="tier_${esc(
-                      mode
-                    )}"
-                  >
-                    <option
-                      value=""
-                    >
-                      Unranked
-                    </option>
-
-                    ${TI.map(
-                      (tier,i) =>
-                        `<option value="${i}"${
-                          i === index
-                            ? " selected"
-                            : ""
-                        }>${tier}</option>`
-                    ).join("")}
-
-                  </select>
-                </label>
-              `;
-            }
-          ).join("")}
-
+  content.innerHTML = `
+    <section class="admin-section">
+      <div class="admin-head">
+        <div>
+          <div class="admin-kicker">Administration</div>
+          <h2>Account Management</h2>
+          <p>
+            Manage users, testers, moderators, and administrators.
+          </p>
         </div>
 
         <button
-          class="go"
-          type="submit"
-        >
-          Save player
-        </button>
-
-        <button
-          class="danger-wide"
-          id="delete-player"
+          class="admin-btn primary"
+          id="createAccount"
           type="button"
         >
-          Delete player
+          + Create account
         </button>
+      </div>
 
-        <div id="msg"></div>
+      <div class="admin-search-wrap">
+        <input
+          class="admin-search"
+          id="account-search"
+          placeholder="Search accounts..."
+        >
+      </div>
 
-      </form>
-    `);
+      <div id="account-list" class="admin-list">
+        Loading accounts...
+      </div>
+    </section>
+  `;
 
-    $("#delete-player").onclick =
-      async () => {
-        if (
-          !confirm(
-            `Delete ${player.name}? This removes their player record and tiers.`
-          )
-        ) {
-          return;
-        }
+  $("#createAccount")?.addEventListener(
+    "click",
+    openCreateAccount
+  );
 
-        try {
-          await api(
-            `/api/admin/players/${encodeURIComponent(
-              player.name
-            )}`,
-            "DELETE"
-          );
+  $("#account-search")?.addEventListener(
+    "input",
+    renderAccountList
+  );
 
-          dlg.close();
+  await fetchAccounts();
+}
 
-          adminView();
-        } catch (error) {
-          msg(
-            error.message,
-            true
-          );
-        }
-      };
+let adminUsers = [];
 
-    $("#f").onsubmit =
-      async e => {
-        e.preventDefault();
+async function fetchAccounts() {
+  try {
+    const data = await api("/api/users");
 
-        const form =
-          new FormData(
-            e.target
-          );
+    adminUsers = Array.isArray(data.users)
+      ? data.users
+      : [];
 
-        const tiers = {};
+    renderAccountList();
+  } catch (err) {
+    const list = $("#account-list");
 
-        MODES.forEach(
-          ([mode]) => {
-            const value =
-              form.get(
-                `tier_${mode}`
-              );
-
-            if (
-              value !== ""
-            ) {
-              tiers[mode] =
-                Number(value);
-            }
-          }
-        );
-
-        try {
-          await api(
-            `/api/admin/players/${encodeURIComponent(
-              player.name
-            )}`,
-            "PATCH",
-            {
-              region:
-                form.get(
-                  "region"
-                ),
-              tiers
-            }
-          );
-
-          dlg.close();
-
-          adminView();
-        } catch (error) {
-          msg(
-            error.message,
-            true
-          );
-        }
-      };
+    if (list) {
+      list.innerHTML = `
+        <div class="admin-note admin-error">
+          ${escapeHTML(err.message)}
+        </div>
+      `;
+    }
   }
+}
 
-  /*
-   * ADMIN TESTS
-   */
+function renderAccountList() {
+  const list = $("#account-list");
 
-  async function adminTests(
-    content
-  ) {
-    const tests =
-      await api(
-        "/api/admin/tests"
-      );
+  if (!list) return;
 
-    content.innerHTML = `
-      <div class="admin-section">
+  const query =
+    $("#account-search")?.value
+      .trim()
+      .toLowerCase() || "";
 
-        <div class="section-head">
-          <div>
-            <h3>Test results</h3>
-            <p class="muted">
-              Review every submitted test.
-            </p>
-          </div>
-        </div>
+  const filtered = adminUsers.filter(user =>
+    user.username.toLowerCase().includes(query) ||
+    (user.discordUsername || "")
+      .toLowerCase()
+      .includes(query) ||
+    user.role.toLowerCase().includes(query)
+  );
 
-        <div class="test-filters">
-
-          <input
-            id="test-search"
-            placeholder="Search player or tester..."
-            autocomplete="off"
-          >
-
-          <select id="test-mode">
-            <option value="">
-              All gamemodes
-            </option>
-
-            ${opts(MODES)}
-          </select>
-
-          <select id="test-tier">
-            <option value="">
-              All tiers
-            </option>
-
-            ${TI.map(
-              tier =>
-                `<option value="${tier}">${tier}</option>`
-            ).join("")}
-          </select>
-
-        </div>
-
-        <div
-          id="test-list"
-          class="admin-list"
-        ></div>
-
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div class="admin-note">
+        No accounts found.
       </div>
     `;
 
-    const render =
-      () => {
-        const query =
-          $("#test-search")
-            .value
-            .trim()
-            .toLowerCase();
-
-        const mode =
-          $("#test-mode")
-            .value;
-
-        const tier =
-          $("#test-tier")
-            .value;
-
-        const filtered =
-          tests.filter(
-            test => {
-              const searchMatch =
-                !query ||
-                test.player
-                  .toLowerCase()
-                  .includes(query) ||
-                test.by
-                  .toLowerCase()
-                  .includes(query);
-
-              const modeMatch =
-                !mode ||
-                test.mode ===
-                  mode;
-
-              const tierMatch =
-                !tier ||
-                test.tier ===
-                  tier;
-
-              return (
-                searchMatch &&
-                modeMatch &&
-                tierMatch
-              );
-            }
-          );
-
-        const list =
-          $("#test-list");
-
-        list.innerHTML =
-          filtered.length
-            ? filtered
-                .map(
-                  test =>
-                    `
-                    <div class="admin-row test-row">
-
-                      <div>
-
-                        <b>
-                          ${esc(
-                            test.player
-                          )}
-                        </b>
-
-                        <span class="sub">
-                          ${esc(
-                            modeName(
-                              test.mode
-                            )
-                          )}
-                          ·
-                          ${esc(
-                            regionName(
-                              test.region
-                            )
-                          )}
-                        </span>
-
-                        <small>
-                          Previous:
-                          ${esc(
-                            test.previous
-                          )}
-                          ·
-                          @${esc(
-                            test.by
-                          )}
-                          ·
-                          ${formatDate(
-                            test.at
-                          )}
-                        </small>
-
-                      </div>
-
-                      <div class="test-actions">
-
-                        <strong>
-                          ${esc(
-                            test.tier
-                          )}
-                        </strong>
-
-                        <button
-                          type="button"
-                          class="del"
-                          data-delete-test="${esc(
-                            test.id
-                          )}"
-                        >
-                          Delete
-                        </button>
-
-                      </div>
-
-                    </div>
-                    `
-                )
-                .join("")
-            : `
-              <div class="empty">
-                No tests match your filters.
-              </div>
-            `;
-      };
-
-    render();
-
-    $("#test-search").oninput =
-      render;
-
-    $("#test-mode").onchange =
-      render;
-
-    $("#test-tier").onchange =
-      render;
-
-    content.onclick =
-      async e => {
-        const id =
-          e.target.dataset
-            .deleteTest;
-
-        if (!id) return;
-
-        if (
-          !confirm(
-            "Delete this test result? This cannot be undone."
-          )
-        ) {
-          return;
-        }
-
-        try {
-          await api(
-            `/api/admin/tests/${encodeURIComponent(
-              id
-            )}`,
-            "DELETE"
-          );
-
-          const index =
-            tests.findIndex(
-              test =>
-                test.id ===
-                id
-            );
-
-          if (
-            index !== -1
-          ) {
-            tests.splice(
-              index,
-              1
-            );
-          }
-
-          render();
-        } catch (error) {
-          alert(
-            error.message
-          );
-        }
-      };
+    return;
   }
 
-  /*
-   * --------------------------------------------------
-   * STARTUP
-   * --------------------------------------------------
-   */
+  list.innerHTML = filtered.map(user => `
+    <div class="admin-user">
+      <div>
+        <strong>${escapeHTML(user.username)}</strong>
 
-  api("/api/me")
-    .then(result => {
-      me =
-        result.user;
+        <span>
+          ${escapeHTML(
+            user.discordUsername || "No Discord"
+          )}
+        </span>
+      </div>
 
-      menu();
-    })
-    .catch(() => {
-      me = null;
-      menu();
+      <div class="admin-actions">
+        <select
+          class="admin-role-select"
+          data-role-user="${escapeHTML(user.id)}"
+          ${user.id === currentUser.id ? "disabled" : ""}
+        >
+          ${["user", "tester", "moderator", "admin"]
+            .map(role => `
+              <option
+                value="${role}"
+                ${user.role === role ? "selected" : ""}
+              >
+                ${roleName(role)}
+              </option>
+            `).join("")}
+        </select>
+
+        ${
+          user.id !== currentUser.id
+            ? `
+              <button
+                class="admin-btn danger"
+                data-delete-user="${escapeHTML(user.id)}"
+                type="button"
+              >
+                Delete
+              </button>
+            `
+            : ""
+        }
+      </div>
+    </div>
+  `).join("");
+
+  list
+    .querySelectorAll("[data-role-user]")
+    .forEach(select => {
+      select.addEventListener(
+        "change",
+        () => updateUserRole(
+          select.dataset.roleUser,
+          select.value
+        )
+      );
     });
-})();
+
+  list
+    .querySelectorAll("[data-delete-user]")
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        () => deleteUser(
+          button.dataset.deleteUser
+        )
+      );
+    });
+}
+
+async function updateUserRole(id, role) {
+  try {
+    await api(`/api/users/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        role
+      })
+    });
+
+    await fetchAccounts();
+    await loadAdminDashboard();
+  } catch (err) {
+    alert(err.message);
+    await fetchAccounts();
+  }
+}
+
+async function deleteUser(id) {
+  if (
+    !confirm(
+      "Delete this account? This cannot be undone."
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await api(`/api/users/${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    });
+
+    await fetchAccounts();
+    await loadAdminDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function openCreateAccount() {
+  const username =
+    prompt("Minecraft username:");
+
+  if (!username) return;
+
+  const discord =
+    prompt("Discord username:");
+
+  if (!discord) return;
+
+  const password =
+    prompt("Temporary password:");
+
+  if (!password) return;
+
+  const role =
+    prompt(
+      "Role: user, tester, moderator, or admin",
+      "tester"
+    );
+
+  if (!role) return;
+
+  createAccount({
+    username,
+    discordUsername: discord,
+    password,
+    role: role.toLowerCase()
+  });
+}
+
+async function createAccount(body) {
+  try {
+    await api("/api/users", {
+      method: "POST",
+      body: JSON.stringify(body)
+    });
+
+    await fetchAccounts();
+    await loadAdminDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+/* =========================================================
+   ADMIN PLAYERS
+========================================================= */
+
+async function renderAdminPlayers() {
+  const content = $("#admin-content");
+
+  if (!content) return;
+
+  content.innerHTML = `
+    <section class="admin-section">
+      <div class="admin-head">
+        <div>
+          <div class="admin-kicker">Rankings</div>
+          <h2>Player Management</h2>
+          <p>
+            ${canRank()
+              ? "Edit player tiers and regions."
+              : "View ranked players."
+            }
+          </p>
+        </div>
+
+        ${
+          canRank()
+            ? `
+              <button
+                class="admin-btn primary"
+                id="adminRankButton"
+                type="button"
+              >
+                + Rank player
+              </button>
+            `
+            : ""
+        }
+      </div>
+
+      <div class="admin-search-wrap">
+        <input
+          class="admin-search"
+          id="player-search"
+          placeholder="Search players..."
+        >
+      </div>
+
+      <div id="player-list" class="admin-list">
+        Loading players...
+      </div>
+    </section>
+  `;
+
+  $("#adminRankButton")?.addEventListener(
+    "click",
+    openTestModal
+  );
+
+  $("#player-search")?.addEventListener(
+    "input",
+    renderAdminPlayerList
+  );
+
+  await fetchAdminPlayers();
+}
+
+let adminPlayers = [];
+
+async function fetchAdminPlayers() {
+  try {
+    const data =
+      await api("/api/admin/players");
+
+    adminPlayers = Array.isArray(data.players)
+      ? data.players
+      : [];
+
+    renderAdminPlayerList();
+  } catch (err) {
+    const list = $("#player-list");
+
+    if (list) {
+      list.innerHTML = `
+        <div class="admin-note admin-error">
+          ${escapeHTML(err.message)}
+        </div>
+      `;
+    }
+  }
+}
+
+function renderAdminPlayerList() {
+  const list = $("#player-list");
+
+  if (!list) return;
+
+  const query =
+    $("#player-search")?.value
+      .trim()
+      .toLowerCase() || "";
+
+  const filtered = adminPlayers.filter(player =>
+    player.name.toLowerCase().includes(query)
+  );
+
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div class="admin-note">
+        No players found.
+      </div>
+    `;
+
+    return;
+  }
+
+  list.innerHTML = filtered.map(player => `
+    <div class="admin-player">
+      <div class="admin-player-main">
+        <strong>${escapeHTML(player.name)}</strong>
+
+        <span>
+          ${escapeHTML(player.region || "NA")}
+          ·
+          ${player.points || 0} points
+        </span>
+      </div>
+
+      <div class="admin-actions">
+        <button
+          class="admin-btn"
+          type="button"
+          data-edit-player="${escapeHTML(player.name)}"
+        >
+          Edit
+        </button>
+
+        ${
+          isModerator()
+            ? `
+              <button
+                class="admin-btn danger"
+                type="button"
+                data-delete-player="${escapeHTML(player.name)}"
+              >
+                Delete
+              </button>
+            `
+            : ""
+        }
+      </div>
+    </div>
+  `).join("");
+
+  list
+    .querySelectorAll("[data-edit-player]")
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        () => editPlayer(
+          button.dataset.editPlayer
+        )
+      );
+    });
+
+  list
+    .querySelectorAll("[data-delete-player]")
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        () => deletePlayer(
+          button.dataset.deletePlayer
+        )
+      );
+    });
+}
+
+async function editPlayer(username) {
+  const player = adminPlayers.find(
+    candidate =>
+      candidate.name.toLowerCase() ===
+      username.toLowerCase()
+  );
+
+  if (!player) return;
+
+  if (!canRank()) {
+    alert("You do not have permission to edit rankings.");
+    return;
+  }
+
+  const region =
+    prompt(
+      "Region: NA, EU, AS, or OC",
+      player.region || "NA"
+    );
+
+  if (!region) return;
+
+  const tiers = {
+    ...(player.tiers || {})
+  };
+
+  for (const mode of MODES) {
+    const current =
+      tierFromValue(tiers[mode]) || "Unranked";
+
+    const value =
+      prompt(
+        `${MODE_NAMES[mode]} tier:`,
+        current
+      );
+
+    if (!value) continue;
+
+    if (!TIERS.includes(value.toUpperCase())) {
+      alert(`Invalid tier for ${MODE_NAMES[mode]}.`);
+      return;
+    }
+
+    tiers[mode] = value.toUpperCase();
+  }
+
+  try {
+    await api(
+      `/api/admin/players/${encodeURIComponent(username)}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({
+          region: region.toUpperCase(),
+          tiers
+        })
+      }
+    );
+
+    await fetchAdminPlayers();
+    await loadPlayers();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function deletePlayer(username) {
+  if (
+    !confirm(
+      `Delete ${username}'s player ranking record?`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await api(
+      `/api/admin/players/${encodeURIComponent(username)}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    await fetchAdminPlayers();
+    await loadPlayers();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+/* =========================================================
+   ADMIN TESTS
+========================================================= */
+
+async function renderAdminTests() {
+  const content = $("#admin-content");
+
+  if (!content) return;
+
+  content.innerHTML = `
+    <section class="admin-section">
+      <div class="admin-head">
+        <div>
+          <div class="admin-kicker">Activity</div>
+          <h2>Test Management</h2>
+          <p>
+            Review and manage submitted ranking tests.
+          </p>
+        </div>
+
+        ${
+          canRank()
+            ? `
+              <button
+                class="admin-btn primary"
+                id="adminNewTest"
+                type="button"
+              >
+                + New test
+              </button>
+            `
+            : ""
+        }
+      </div>
+
+      <div class="admin-filters">
+        <input
+          class="admin-search"
+          id="test-search"
+          placeholder="Search player or tester..."
+        >
+
+        <select
+          class="admin-select"
+          id="test-mode"
+        >
+          <option value="">All gamemodes</option>
+
+          ${MODES.map(mode => `
+            <option value="${mode}">
+              ${MODE_NAMES[mode]}
+            </option>
+          `).join("")}
+        </select>
+
+        <select
+          class="admin-select"
+          id="test-tier"
+        >
+          <option value="">All tiers</option>
+
+          ${TIERS.map(tier => `
+            <option value="${tier}">
+              ${tier}
+            </option>
+          `).join("")}
+        </select>
+      </div>
+
+      <div id="test-list" class="admin-list">
+        Loading tests...
+      </div>
+    </section>
+  `;
+
+  $("#adminNewTest")?.addEventListener(
+    "click",
+    openTestModal
+  );
+
+  $("#test-search")?.addEventListener(
+    "input",
+    renderTestList
+  );
+
+  $("#test-mode")?.addEventListener(
+    "change",
+    renderTestList
+  );
+
+  $("#test-tier")?.addEventListener(
+    "change",
+    renderTestList
+  );
+
+  await fetchAdminTests();
+}
+
+async function fetchAdminTests() {
+  try {
+    const data =
+      await api("/api/admin/tests");
+
+    tests = Array.isArray(data.tests)
+      ? data.tests
+      : [];
+
+    renderTestList();
+  } catch (err) {
+    const list = $("#test-list");
+
+    if (list) {
+      list.innerHTML = `
+        <div class="admin-note admin-error">
+          ${escapeHTML(err.message)}
+        </div>
+      `;
+    }
+  }
+}
+
+function renderTestList() {
+  const list = $("#test-list");
+
+  if (!list) return;
+
+  const query =
+    $("#test-search")?.value
+      .trim()
+      .toLowerCase() || "";
+
+  const mode =
+    $("#test-mode")?.value || "";
+
+  const tier =
+    $("#test-tier")?.value || "";
+
+  const filtered = tests.filter(test => {
+    const matchesSearch =
+      !query ||
+      test.player.toLowerCase().includes(query) ||
+      test.by.toLowerCase().includes(query);
+
+    const matchesMode =
+      !mode || test.mode === mode;
+
+    const matchesTier =
+      !tier || test.tier === tier;
+
+    return (
+      matchesSearch &&
+      matchesMode &&
+      matchesTier
+    );
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div class="admin-note">
+        No tests found.
+      </div>
+    `;
+
+    return;
+  }
+
+  list.innerHTML = filtered.map(test => `
+    <div class="admin-test">
+      <div class="admin-test-main">
+        <div>
+          <strong>
+            ${escapeHTML(test.player)}
+          </strong>
+
+          <span>
+            ${escapeHTML(
+              MODE_NAMES[test.mode] ||
+              test.mode
+            )}
+            ·
+            ${escapeHTML(test.region)}
+          </span>
+        </div>
+
+        <div>
+          <strong>
+            ${escapeHTML(test.tier)}
+          </strong>
+
+          <span>
+            Previous:
+            ${escapeHTML(test.previous || "Unranked")}
+          </span>
+        </div>
+
+        <div>
+          <span>
+            Tested by
+            ${escapeHTML(test.by)}
+          </span>
+
+          <span>
+            ${formatDate(test.at)}
+          </span>
+        </div>
+      </div>
+
+      ${
+        isModerator()
+          ? `
+            <button
+              class="admin-btn danger"
+              type="button"
+              data-delete-test="${escapeHTML(test.id)}"
+            >
+              Delete
+            </button>
+          `
+          : ""
+      }
+    </div>
+  `).join("");
+
+  list
+    .querySelectorAll("[data-delete-test]")
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        () => deleteTest(
+          button.dataset.deleteTest
+        )
+      );
+    });
+}
+
+async function deleteTest(id) {
+  if (
+    !confirm(
+      "Delete this test record?"
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await api(
+      `/api/admin/tests/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    await fetchAdminTests();
+    await loadAdminDashboard();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function formatDate(value) {
+  if (!value) return "Unknown";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown";
+  }
+
+  return date.toLocaleString();
+}
+
+/* =========================================================
+   EVENT SETUP
+========================================================= */
+
+function setupEvents() {
+  $("#authClose")?.addEventListener(
+    "click",
+    closeAuthModal
+  );
+
+  $("#adminClose")?.addEventListener(
+    "click",
+    closeAdminPanel
+  );
+
+  $("#profileClose")?.addEventListener(
+    "click",
+    closePlayerProfile
+  );
+
+  $("#dc")?.addEventListener(
+    "click",
+    closeTestModal
+  );
+
+  $("#loginForm")?.addEventListener(
+    "submit",
+    loginUser
+  );
+
+  $("#signupForm")?.addEventListener(
+    "submit",
+    signupUser
+  );
+
+  $("#f")?.addEventListener(
+    "submit",
+    submitTest
+  );
+
+  $("#authSwitch")?.addEventListener(
+    "click",
+    () => {
+      const signup =
+        $("#signupForm")?.style.display !== "none";
+
+      if (signup) {
+        showLoginView();
+      } else {
+        showSignupView();
+      }
+    }
+  );
+
+  $("#adminPanelButton")?.addEventListener(
+    "click",
+    () => {
+      closeAuthModal();
+      openAdminPanel();
+    }
+  );
+
+  $("#logoutButton")?.addEventListener(
+    "click",
+    logoutUser
+  );
+
+  $("#q")?.addEventListener(
+    "input",
+    renderPlayers
+  );
+
+  /*
+   * Close overlays by clicking outside their card.
+   */
+  document.querySelectorAll(
+    "#authModal, #adminModal, #dlg, #profile"
+  ).forEach(modal => {
+    modal.addEventListener("click", event => {
+      if (event.target === modal) {
+        modal.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+      }
+    });
+  });
+
+  document.addEventListener(
+    "keydown",
+    event => {
+      if (event.key !== "Escape") return;
+
+      closeAuthModal();
+      closeAdminPanel();
+      closeTestModal();
+      closePlayerProfile();
+    }
+  );
+}
+
+/* =========================================================
+   START
+========================================================= */
+
+async function init() {
+  setupEvents();
+
+  await loadMe();
+
+  await loadPlayers();
+
+  /*
+   * If the user was already logged in when the page
+   * loaded, make sure the menu reflects their role.
+   */
+  updateMenu();
+}
+
+init().catch(error => {
+  console.error(
+    "FrostTiers initialization error:",
+    error
+  );
+});
