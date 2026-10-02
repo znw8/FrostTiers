@@ -1,0 +1,2605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FrostTiers</title>
+
+<style>
+:root{
+  --bg:#0b0d12;
+  --panel:#131822;
+  --card:#161b26;
+  --line:#222a38;
+  --text:#e6e9f0;
+  --mute:#7d879a;
+  --gold:#e8b84a;
+  --bronze:#c9843a;
+  --red:#7a2f33;
+  --redt:#e0585e
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  padding-top:env(safe-area-inset-top)
+}
+
+.wrap{
+  max-width:560px;
+  margin:0 auto;
+  padding:12px 6px 50px
+}
+
+header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:11px 12px
+}
+
+.logo{
+  flex:none;
+  width:140px;
+  height:38px;
+  overflow:visible
+}
+
+.search{
+  flex:1;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:#1b2130;
+  border-radius:99px;
+  padding:0 10px;
+  height:40px
+}
+
+.search svg{
+  flex:none;
+  color:var(--mute);
+  width:20px;
+  height:20px
+}
+
+.search input{
+  flex:1;
+  min-width:0;
+  background:none;
+  border:0;
+  outline:0;
+  color:var(--text);
+  font-size:16px
+}
+
+.search input::placeholder{color:var(--mute)}
+
+.burger{
+  background:none;
+  border:0;
+  color:var(--text);
+  padding:2px;
+  cursor:pointer;
+  display:grid
+}
+
+.burger svg{
+  width:26px;
+  height:26px
+}
+
+.tabs{
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  margin:44px 0 0;
+  scrollbar-width:none
+}
+
+.tabs::-webkit-scrollbar{display:none}
+
+.tab{
+  flex:none;
+  width:106px;
+  height:78px;
+  background:#10141c;
+  border:1px solid var(--line);
+  border-bottom:0;
+  border-radius:16px 16px 0 0;
+  color:var(--mute);
+  font-weight:700;
+  font-size:16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  cursor:pointer;
+  position:relative
+}
+
+.tab svg{
+  width:32px;
+  height:32px
+}
+
+.tab.on{
+  background:var(--panel);
+  color:#cfd5e2
+}
+
+.tab.on::after{
+  content:"";
+  position:absolute;
+  left:6px;
+  right:6px;
+  bottom:0;
+  height:2px;
+  background:#cfd5e2;
+  border-radius:2px
+}
+
+.board{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:0 0 16px 16px;
+  padding:14px 18px
+}
+
+.bar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:nowrap;
+  width:100%
+}
+
+.info{
+  flex:none;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  background:#1b2130;
+  border:0;
+  color:var(--text);
+  font-size:14px;
+  font-weight:500;
+  padding:10px 14px;
+  border-radius:11px;
+  cursor:pointer
+}
+
+.info i{
+  width:19px;
+  height:19px;
+  border-radius:50%;
+  background:#aeb4c2;
+  color:#1b2130;
+  font:900 12px/19px Georgia,serif;
+  text-align:center
+}
+
+.srv{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:auto;
+  flex:none;
+  min-width:0
+}
+
+.pvp{
+  font:900 italic 14px/.9 "Arial Black",sans-serif;
+  color:#fff;
+  text-align:center;
+  -webkit-text-stroke:.5px #000;
+  text-shadow:1px 1px 0 #000
+}
+
+.pvp span{
+  display:block;
+  color:#e03030
+}
+
+.srv small{
+  display:block;
+  color:var(--mute);
+  font-weight:800;
+  font-size:10px;
+  letter-spacing:.4px;
+  margin-bottom:2px
+}
+
+.ip{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:#1b2130;
+  border-radius:8px;
+  padding:5px 8px;
+  font-weight:700;
+  font-size:13px
+}
+
+.ip button{
+  background:none;
+  border:0;
+  color:var(--mute);
+  cursor:pointer;
+  display:grid
+}
+
+.ip svg{
+  width:14px;
+  height:14px
+}
+
+.dc{
+  width:40px;
+  height:36px;
+  border-radius:9px;
+  background:#5865f2;
+  display:grid;
+  place-items:center;
+  border:0;
+  cursor:pointer
+}
+
+.dc svg{
+  width:22px;
+  height:22px
+}
+
+.cols{
+  display:grid;
+  grid-template-columns:44px 1fr auto;
+  padding:20px 12px 8px;
+  color:#3a4458;
+  font-weight:800;
+  font-size:15px
+}
+
+.cols span:nth-child(2){padding-left:92px}
+
+.cols span:nth-child(3){
+  text-align:right;
+  padding-right:14px
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  margin-bottom:12px;
+  padding:1px 10px 12px 1px;
+  overflow:hidden;
+  cursor:pointer
+}
+
+.top{
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+
+.rank{
+  position:relative;
+  flex:none;
+  width:142px;
+  height:54px;
+  margin-top:1px;
+  clip-path:polygon(0 0,100% 0,88% 100%,0 100%);
+  display:flex;
+  align-items:center;
+  overflow:hidden
+}
+
+.rank b{
+  font:italic 900 38px/1 "Arial Black",sans-serif;
+  padding-left:10px;
+  color:#fff;
+  text-shadow:2px 2px 0 rgba(0,0,0,.35);
+  position:relative;
+  z-index:4
+}
+
+.rank .skin{
+  position:absolute;
+  right:2px;
+  bottom:-12px;
+  width:76px;
+  height:82px;
+  object-fit:contain;
+  object-position:center bottom;
+  image-rendering:auto;
+  z-index:2;
+  transform:rotate(3deg);
+  transform-origin:50% 85%;
+  filter:drop-shadow(2px 3px 1px rgba(0,0,0,.32));
+  transition:transform .2s ease
+}
+
+.card:hover .rank .skin{
+  transform:rotate(6deg) translateY(-2px)
+}
+
+.rank .skin-fallback{
+  opacity:.45;
+  width:58px;
+  height:66px;
+  right:8px;
+  bottom:-5px
+}
+
+.r1{background:#e8bb55}
+.r2{background:#8d9aa5}
+.r3{background:#a8592a}
+.rn{background:#2a3242}
+
+.who{
+  flex:1;
+  min-width:0
+}
+
+.who h3{
+  font-size:23px;
+  font-weight:800;
+  color:#c8cddb;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.ttl{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  color:#8791a6;
+  font-size:16px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.ttl svg{
+  flex:none;
+  width:22px;
+  height:22px
+}
+
+.ttl span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+
+.reg{
+  flex:none;
+  width:40px;
+  height:40px;
+  border-radius:9px;
+  display:grid;
+  place-items:center;
+  font-weight:900;
+  font-size:18px
+}
+
+.NA{background:var(--red);color:var(--redt)}
+.EU{background:#27522f;color:#58c46c}
+.AS{background:#2e3f6b;color:#6f93ee}
+.AU{background:#5a4a1d;color:#e0bf55}
+
+.tl{
+  padding:12px 0 0 10px
+}
+
+.tl>small{
+  display:block;
+  color:#8791a6;
+  font-weight:800;
+  font-size:15px;
+  margin-bottom:8px
+}
+
+.tiers{
+  display:flex;
+  gap:3px;
+  justify-content:flex-start
+}
+
+.t{
+  flex:0 1 38px;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px
+}
+
+.ic{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:#0d1017;
+  border:2px solid #1b2230;
+  display:grid;
+  place-items:center
+}
+
+.ic svg{
+  width:19px;
+  height:19px
+}
+
+.t.b3 .ic{border-color:#6e4a2a}
+
+.tag{
+  font-weight:900;
+  font-size:11px;
+  padding:2px 5px;
+  border-radius:99px;
+  background:#1b2130;
+  white-space:nowrap
+}
+
+.g{color:var(--gold)}
+.s{color:#9aa3b5}
+.o{color:var(--bronze);background:#4a3220}
+.lo{color:#7d879a}
+
+.empty{
+  text-align:center;
+  color:var(--mute);
+  padding:30px 0
+}
+
+.ov{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  opacity:0;
+  pointer-events:none;
+  transition:.2s;
+  z-index:9
+}
+
+.ov.on{
+  opacity:1;
+  pointer-events:auto
+}
+
+.drawer{
+  position:fixed;
+  top:0;
+  right:0;
+  bottom:0;
+  width:70%;
+  max-width:320px;
+  background:#121722;
+  z-index:10;
+  transform:translateX(100%);
+  transition:transform .22s;
+  padding:calc(18px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column
+}
+
+.drawer.on{transform:none}
+
+.x{
+  align-self:flex-end;
+  width:32px;
+  height:32px;
+  border:1.5px solid #3a4458;
+  background:none;
+  border-radius:8px;
+  color:#cfd5e2;
+  font-size:15px;
+  cursor:pointer
+}
+
+.nav{
+  margin-top:30px;
+  display:flex;
+  flex-direction:column;
+  gap:22px
+}
+
+.nav a{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:#fff;
+  font-weight:800;
+  font-size:19px;
+  text-decoration:none
+}
+
+.nav a.dim{color:#232b3b}
+
+.nav svg{
+  width:26px;
+  height:26px
+}
+
+.dcs{margin-top:auto}
+
+.dcs h4{
+  color:#6d7890;
+  font-weight:500;
+  font-size:18px;
+  margin-bottom:12px
+}
+
+.dgrid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px
+}
+
+.dgrid a{
+  aspect-ratio:1;
+  background:#171d2a;
+  border:1px solid #232b3b;
+  border-radius:12px;
+  display:grid;
+  place-items:center
+}
+
+.dgrid svg{
+  width:28px;
+  height:28px
+}
+
+.modal{
+  position:fixed;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:92%;
+  max-width:380px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px;
+  z-index:11;
+  display:none;
+  line-height:1.5;
+  font-size:14px;
+  color:#c8cddb;
+  max-height:85vh;
+  overflow-y:auto
+}
+
+.modal.on{display:block}
+
+.modal-tabs{
+  display:flex;
+  background:#10141c;
+  border-radius:10px;
+  padding:4px;
+  margin-bottom:16px;
+  gap:4px
+}
+
+.mtab{
+  flex:1;
+  background:none;
+  border:0;
+  color:var(--mute);
+  font-weight:700;
+  font-size:14px;
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
+  transition:.2s
+}
+
+.mtab.on{
+  background:#1b2130;
+  color:var(--text)
+}
+
+.modal-content{display:none}
+.modal-content.on{display:block}
+
+.modal-body{
+  font-size:13px;
+  color:#9aa3b5;
+  margin-bottom:14px
+}
+
+.modal-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px
+}
+
+.modal-item{
+  background:#161c2a;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+
+.modal-item svg{
+  width:24px;
+  height:24px;
+  flex:none
+}
+
+.modal-item-info{
+  flex:1;
+  min-width:0
+}
+
+.modal-item-title{
+  font-weight:800;
+  color:#fff;
+  font-size:14px;
+  display:flex;
+  align-items:center;
+  gap:6px
+}
+
+.modal-item-desc{
+  font-size:12px;
+  color:var(--mute);
+  margin-top:2px
+}
+
+.modal button.close-btn{
+  width:100%;
+  margin-top:16px;
+  background:#1b2130;
+  color:var(--text);
+  border:0;
+  border-radius:10px;
+  padding:10px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:700
+}
+
+.tcols{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  margin:16px -2px 0;
+  padding:0 2px 8px;
+  scrollbar-width:none
+}
+
+.tcols::-webkit-scrollbar{display:none}
+
+.tcol{
+  flex:none;
+  width:214px
+}
+
+.th{
+  height:50px;
+  border-radius:12px 12px 0 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-weight:800;
+  font-size:25px
+}
+
+.th svg{
+  width:30px;
+  height:30px
+}
+
+.h1{background:#3d3220;color:#e8a92f}
+.h2{background:#33363f;color:#9aa3b5}
+.h3{background:#342a22;color:#b9753a}
+.h4{background:#262c39;color:#7d879a}
+.h5{background:#222836;color:#667086}
+
+.prow{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  height:34px;
+  margin-top:2px;
+  padding:0 10px 0 8px;
+  background:#1a2132;
+  border-left:3px solid var(--rc);
+  cursor:pointer;
+  color:#dde1ea;
+  font-size:16px
+}
+
+.prow:nth-child(odd){background:#161c2a}
+.prow:hover{background:#222b40}
+
+.prow .skin{
+  width:34px;
+  height:34px;
+  object-fit:contain;
+  object-position:center;
+  image-rendering:auto;
+  filter:drop-shadow(1px 1px 1px rgba(0,0,0,.25));
+  transform:rotate(3deg);
+  flex:none
+}
+
+.prow .skin-fallback{opacity:.45}
+
+.prow span{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+
+.prow svg{
+  width:18px;
+  height:18px;
+  color:#6b7fa8
+}
+
+.ltm{
+  text-align:center;
+  padding:26px 14px 60px
+}
+
+.ltm svg{
+  width:40px;
+  height:40px;
+  color:#c3cad8
+}
+
+.ltm h2{
+  font-size:24px;
+  line-height:1.25;
+  margin:8px 0 12px;
+  color:#fff
+}
+
+.ltm p{
+  color:#7d879a;
+  font-size:16px;
+  line-height:1.7
+}
+
+.footer-copy{
+  text-align:center;
+  color:var(--mute);
+  font-size:13px;
+  font-weight:600;
+  margin-top:24px;
+  letter-spacing:.3px
+}
+
+.profile{
+  position:fixed;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:calc(100% - 16px);
+  max-width:540px;
+  max-height:90vh;
+  overflow-y:auto;
+  background:#101722;
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:34px 14px 22px;
+  z-index:11;
+  display:none;
+  text-align:center
+}
+
+.profile.on{display:block}
+
+.pclose{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  border:0;
+  background:#1b2433;
+  color:#cfd5e2;
+  font-size:18px;
+  cursor:pointer
+}
+
+.pav{
+  width:150px;
+  height:165px;
+  border-radius:18px;
+  border:3px solid #e8bb55;
+  background:#131c2b;
+  margin:18px auto 8px;
+  overflow:hidden;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  position:relative
+}
+
+.pav .skin{
+  width:150px;
+  height:165px;
+  object-fit:contain;
+  object-position:center;
+  image-rendering:auto;
+  transform:rotate(3deg);
+  transform-origin:50% 75%;
+  filter:drop-shadow(3px 3px 2px rgba(0,0,0,.3))
+}
+
+.profile h2{
+  font-size:28px;
+  color:#c8cddb;
+  font-weight:800
+}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#40391f;
+  color:#f5d442;
+  font-weight:600;
+  font-size:16px;
+  padding:6px 16px 6px 10px;
+  border-radius:99px;
+  margin-top:10px
+}
+
+.pill svg{
+  width:24px;
+  height:24px
+}
+
+.preg{
+  color:#2a3345;
+  font-weight:800;
+  font-size:20px;
+  margin:16px 0
+}
+
+.nmc{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#1b2433;
+  color:#8791a6;
+  text-decoration:none;
+  font-size:15px;
+  padding:6px 12px 6px 6px;
+  border-radius:14px
+}
+
+.nmc i{
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#000;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font:900 14px/1 Arial,sans-serif;
+  font-style:normal
+}
+
+.profile h5{
+  text-align:left;
+  color:#8f98ab;
+  font-weight:600;
+  font-size:21px;
+  margin:22px 0 10px 4px
+}
+
+.pos{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:2px solid #232b3b;
+  border-radius:14px;
+  padding:3px;
+  background:#131a26
+}
+
+.pos .rank{
+  width:120px;
+  height:50px;
+  margin:0
+}
+
+.pos .rank b{font-size:32px}
+
+.pos svg{
+  width:26px;
+  height:26px
+}
+
+.pos strong{
+  font-size:21px;
+  color:#fff;
+  font-weight:800
+}
+
+.pos small{
+  color:#7d879a;
+  font-size:14px;
+  font-weight:600;
+  margin-left:auto;
+  padding-right:8px
+}
+
+.ptiers{
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  border:2px solid #232b3b;
+  border-radius:14px;
+  padding:12px 10px;
+  scrollbar-width:none
+}
+
+.ptiers::-webkit-scrollbar{display:none}
+
+.ptiers .t{
+  flex:none;
+  width:56px
+}
+
+.ptiers .ic{
+  width:40px;
+  height:40px
+}
+
+.ptiers .ic svg{
+  width:25px;
+  height:25px
+}
+
+.ptiers .tag{
+  font-size:14px;
+  padding:3px 8px
+}
+
+@keyframes rise{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:none}
+}
+
+@keyframes grow{
+  from{transform:scaleX(0)}
+  to{transform:scaleX(1)}
+}
+
+@keyframes pop{
+  from{opacity:0;transform:translate(-50%,-46%) scale(.94)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+
+@keyframes sheen{
+  0%{transform:translateX(-130%)}
+  35%,100%{transform:translateX(130%)}
+}
+
+@keyframes slidein{
+  from{opacity:0;transform:translateX(18px)}
+  to{opacity:1;transform:none}
+}
+
+@keyframes wiggle{
+  0%,100%{transform:rotate(0)}
+  20%{transform:rotate(-14deg)}
+  40%{transform:rotate(12deg)}
+  60%{transform:rotate(-8deg)}
+  80%{transform:rotate(4deg)}
+}
+
+@keyframes fade{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+.anim .card,.anim .prow{
+  animation:rise .38s cubic-bezier(.2,.7,.2,1) both;
+  animation-delay:calc(var(--i,0)*45ms)
+}
+
+.anim .th{animation:fade .4s both}
+.anim .ltm{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+
+.ltm svg{
+  animation:wiggle 1.6s .5s ease-in-out 2;
+  transform-origin:50% 60%
+}
+
+.tab{
+  transition:transform .16s,background .2s,color .2s
+}
+
+.tab:hover{
+  transform:translateY(-2px);
+  color:#cfd5e2
+}
+
+.tab:active{transform:scale(.97)}
+
+.tab.on::after{
+  transform-origin:center;
+  animation:grow .28s ease-out
+}
+
+.card{
+  transition:transform .18s,border-color .18s,background .18s
+}
+
+.card:hover{
+  transform:translateY(-2px);
+  border-color:#2f3b52;
+  background:#1a2130
+}
+
+.card:active{transform:scale(.99)}
+
+.prow{
+  transition:background .15s,padding-left .15s
+}
+
+.prow:hover{padding-left:12px}
+
+.prow svg{transition:transform .18s}
+
+.prow:hover svg{transform:translateY(-2px)}
+
+.ic{
+  transition:transform .18s,border-color .18s
+}
+
+.t:hover .ic{
+  transform:scale(1.12);
+  border-color:#3a4660
+}
+
+.info,.dc,.ip button,.burger,.pclose,.x{
+  transition:transform .15s,background .2s
+}
+
+.info:hover,.dc:hover{transform:translateY(-1px)}
+
+.info:active,.dc:active,.burger:active{
+  transform:scale(.95)
+}
+
+.pclose:hover,.x:hover{background:#26324a}
+
+.search{
+  transition:box-shadow .2s,background .2s
+}
+
+.search:focus-within{
+  box-shadow:0 0 0 2px #3a4a6e;
+  background:#202839
+}
+
+.rank.r1::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:3;
+  background:linear-gradient(
+    100deg,
+    transparent 35%,
+    rgba(255,255,255,.38) 50%,
+    transparent 65%
+  );
+  transform:translateX(-130%);
+  animation:sheen 3.8s 1.2s infinite
+}
+
+.profile.on{
+  animation:pop .24s cubic-bezier(.2,.9,.3,1.15)
+}
+
+.profile.on .pav{
+  animation:pop2 .4s .05s both cubic-bezier(.2,.9,.3,1.3)
+}
+
+@keyframes pop2{
+  from{opacity:0;transform:scale(.7)}
+  to{opacity:1;transform:none}
+}
+
+.profile.on .pos .rank,
+.profile.on .ptiers .t{
+  animation:rise .35s both
+}
+
+.profile.on .ptiers .t{
+  animation-delay:calc(var(--i,0)*50ms + .15s)
+}
+
+.drawer.on .nav a,
+.drawer.on .dgrid a{
+  animation:slidein .3s both
+}
+
+.drawer.on .nav a:nth-child(1){animation-delay:.08s}
+.drawer.on .nav a:nth-child(2){animation-delay:.14s}
+.drawer.on .nav a:nth-child(3){animation-delay:.2s}
+.drawer.on .dgrid a:nth-child(n){animation-delay:.25s}
+
+.dgrid a{
+  transition:transform .15s,background .2s
+}
+
+.dgrid a:hover{
+  transform:translateY(-2px);
+  background:#1e2636
+}
+
+.ip.ok{color:#6fd37f}
+
+@media(max-width:520px){
+  .bar{
+    gap:6px
+  }
+
+  .info{
+    padding:10px 10px
+  }
+
+  .srv{
+    gap:5px
+  }
+
+  .pvp{
+    font-size:11px
+  }
+
+  .ip{
+    font-size:11px;
+    padding:5px 6px
+  }
+
+  .dc{
+    width:36px;
+    height:36px
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation:none!important;
+    transition:none!important
+  }
+}
+</style>
+</head>
+
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+<defs>
+
+<symbol id="vanilla" viewBox="0 0 48 48">
+<path d="M24 5l16 9v20l-16 9-16-9V14z" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"/>
+<path d="M24 14l9 5v10l-9 5-9-5V19z" fill="#b57ee0"/>
+<path d="M24 14l9 5-9 5-9-5z" fill="#d6aef5"/>
+<circle cx="24" cy="5" r="3" fill="#b57ee0"/>
+<circle cx="40" cy="34" r="3" fill="#b57ee0"/>
+<circle cx="8" cy="34" r="3" fill="#b57ee0"/>
+</symbol>
+
+<symbol id="uhc" viewBox="0 0 48 48">
+<path d="M24 42C8 30 5 20 9 14c4-5 12-4 15 2 3-6 11-7 15-2 4 6 1 16-15 28z" fill="#d24a4a"/>
+<path d="M14 20l8 8M34 20l-8 8" stroke="#8c2020" stroke-width="3" stroke-linecap="round"/>
+</symbol>
+
+<symbol id="pot" viewBox="0 0 48 48">
+<path d="M20 4h8v10c7 2 12 7 12 14a16 16 0 0 1-32 0c0-7 5-12 12-14z" fill="#fff"/>
+<path d="M22 7h4v8.500c6 2 10 6.500 10 12.500a14 14 0 0 1-28 0c0-6 4-10.500 10-12.500z" fill="#0d1017"/>
+<path d="M10 29h28a14 14 0 0 1-28 0z" fill="#d94a6a"/>
+</symbol>
+
+<symbol id="neth" viewBox="0 0 48 48">
+<path d="M6 26C6 13 14 6 24 6s18 7 18 20v14h-9l-3-8H18l-3 8H6z" fill="#8d6bc0"/>
+<path d="M10 20c2-8 8-11 14-11" stroke="#b69be0" stroke-width="3.500" fill="none" stroke-linecap="round"/>
+<rect x="13" y="22" width="8" height="8" rx="1" fill="#2f2147"/>
+<rect x="27" y="22" width="8" height="8" rx="1" fill="#2f2147"/>
+</symbol>
+
+<symbol id="smp" viewBox="0 0 48 48">
+<circle cx="24" cy="24" r="19" fill="#0b2f2a"/>
+<circle cx="24" cy="24" r="19" fill="none" stroke="#2f9c86" stroke-width="3"/>
+<path d="M12 15a15 15 0 0 1 14-8" stroke="#9ff3e0" stroke-width="3.500" fill="none" stroke-linecap="round"/>
+<path d="M36 33a14 14 0 0 1-12 7" stroke="#2f9c86" stroke-width="3" fill="none" stroke-linecap="round"/>
+</symbol>
+
+<symbol id="sword" viewBox="0 0 48 48">
+<path d="M40 5l3 3-17 20-6-6z" fill="#8fc8f0"/>
+<path d="M12 24l12 12-4 4-12-12z" fill="#4f7fcf"/>
+<path d="M10 34l4 4-6 6-4-1-1-4z" fill="#3b64a8"/>
+</symbol>
+
+<symbol id="axe" viewBox="0 0 48 48">
+<path d="M9 41l22-22" stroke="#4a86d8" stroke-width="5" stroke-linecap="round"/>
+<path d="M26 9c7-4 16-1 15 7l-9 3-8-6z" fill="#8cc7ee"/>
+</symbol>
+
+<symbol id="mace" viewBox="0 0 48 48">
+<path d="M9 40l17-17" stroke="#8e86b8" stroke-width="5" stroke-linecap="round"/>
+<g transform="rotate(45 32 18)">
+<rect x="22" y="10" width="20" height="15" rx="2" fill="#4a4d5a"/>
+</g>
+<rect x="33" y="5" width="9" height="9" fill="#7b7f92"/>
+</symbol>
+
+<symbol id="trophy" viewBox="0 0 48 48">
+<path d="M14 6h20v12c0 7-4 11-10 11S14 25 14 18z" fill="#e0a23a"/>
+<path d="M14 10H6c0 8 4 12 9 12M34 10h8c0 8-4 12-9 12" stroke="#e0a23a" stroke-width="3" fill="none"/>
+<rect x="21" y="29" width="6" height="7" fill="#e0a23a"/>
+<rect x="14" y="36" width="20" height="5" rx="2" fill="#e0a23a"/>
+</symbol>
+
+<symbol id="ltm" viewBox="0 0 48 48">
+<path d="M8 10l24 24M40 10L16 34" stroke="#9aa3b5" stroke-width="6" stroke-linecap="round"/>
+<path d="M6 36l6 6M42 36l-6 6" stroke="#6b7385" stroke-width="5" stroke-linecap="round"/>
+</symbol>
+
+<symbol id="trophy2" viewBox="0 0 48 48">
+<path d="M14 6h20v12c0 7-4 11-10 11S14 25 14 18z" fill="currentColor"/>
+<path d="M14 10H6c0 8 4 12 9 12M34 10h8c0 8-4 12-9 12" stroke="currentColor" stroke-width="3" fill="none"/>
+<rect x="21" y="29" width="6" height="7" fill="currentColor"/>
+<rect x="14" y="36" width="20" height="5" rx="2" fill="currentColor"/>
+</symbol>
+
+<symbol id="up2" viewBox="0 0 24 24">
+<path d="M5 12l7-7 7 7M5 20l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+
+<symbol id="up1" viewBox="0 0 24 24">
+<path d="M5 16l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+
+<symbol id="rank" viewBox="0 0 24 24">
+<path d="M12 2l4 5-4 4-4-4zM12 11l5 6-5 5-5-5z" fill="#f2c54a"/>
+</symbol>
+
+</defs>
+</svg>
+
+<div class="wrap">
+
+<header>
+
+<svg class="logo" viewBox="0 0 150 40" role="img" aria-label="FrostTiers">
+
+<defs>
+
+<linearGradient id="lgM" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#7cc044"/>
+<stop offset=".45" stop-color="#5a9a2c"/>
+<stop offset=".5" stop-color="#9a5b2a"/>
+<stop offset="1" stop-color="#6b3a18"/>
+</linearGradient>
+
+<linearGradient id="lgT" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#ffe27a"/>
+<stop offset=".6" stop-color="#f2b53a"/>
+<stop offset="1" stop-color="#d9822a"/>
+</linearGradient>
+
+</defs>
+
+<g font-family="Impact,'Arial Narrow Bold','Arial Black',sans-serif"
+   font-weight="900"
+   font-size="34"
+   font-style="italic"
+   stroke-linejoin="round">
+
+<g fill="#3b1f0c" stroke="#3b1f0c" stroke-width="5">
+<text x="3" y="33" textLength="50" lengthAdjust="spacingAndGlyphs">FT</text>
+<text x="57" y="33" textLength="88" lengthAdjust="spacingAndGlyphs">IERS</text>
+</g>
+
+<g stroke="#5a3010" stroke-width="1.5">
+<text x="2" y="31" textLength="50" lengthAdjust="spacingAndGlyphs" fill="url(#lgM)">FT</text>
+<text x="56" y="31" textLength="88" lengthAdjust="spacingAndGlyphs" fill="url(#lgT)">IERS</text>
+</g>
+
+</g>
+</svg>
+
+<label class="search">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<circle cx="11" cy="11" r="7"/>
+<path d="M20 20l-4-4"/>
+</svg>
+
+<input
+  id="q"
+  type="search"
+  placeholder="Search player…"
+  autocomplete="off"
+>
+
+</label>
+
+<button class="burger" id="open" aria-label="Menu">
+
+<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M4 7h16M4 12h16M4 17h16"/>
+</svg>
+
+</button>
+
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+
+<section class="board">
+
+<div class="bar">
+
+<button class="info" id="infoBtn">
+<i>i</i>Information
+</button>
+
+<div class="srv">
+
+<div class="pvp">
+FROST<span>TIERS</span>
+</div>
+
+<div>
+
+<small>SERVER IP</small>
+
+<div class="ip">
+
+<span id="ip">Play.Radlus.Site</span>
+
+<button id="copy" aria-label="Copy IP">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<rect x="8" y="8" width="12" height="12" rx="2"/>
+<path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>
+</svg>
+
+</button>
+
+</div>
+</div>
+
+<a
+  class="dc"
+  href="/discord"
+  aria-label="FrostTiers Discord"
+>
+
+<svg viewBox="0 0 24 24" fill="#fff">
+
+<path d="M19.5 5.3A17 17 0 0 0 15.3 4l-.5 1a15.500 15.500 0 0 0-5.600 0L9.200 4a17 17 0 0 0-4.200 1.300C2.400 9.200 1.700 13 2 16.700a17 17 0 0 0 5.200 2.600l1.100-1.800c-.6-.2-1.200-.5-1.700-.9l.4-.3a12 12 0 0 0 10.200 0l.4.3c-.5.4-1.100.7-1.700.9l1.100 1.800a17 17 0 0 0 5.200-2.600c.4-4.300-.7-8.100-2.700-11.400zM9 14.500c-1 0-1.800-.9-1.800-2s.8-2 1.800-2 1.800.9 1.800 2-.8 2-1.800 2zm6 0c-1 0-1.800-.9-1.800-2s.8-2 1.800-2 1.800.9 1.800 2-.8 2-1.800 2z"/>
+
+</svg>
+
+</a>
+
+</div>
+</div>
+
+<div class="cols" id="cols">
+
+<span>#</span>
+<span>PLAYER</span>
+<span>REGION</span>
+
+</div>
+
+<div id="list"></div>
+
+</section>
+
+<div class="footer-copy">Copyrights © frosttiers 2026</div>
+
+</div>
+
+<div class="ov" id="ov"></div>
+
+<aside class="drawer" id="drawer">
+
+<button class="x" id="close" aria-label="Close">✕</button>
+
+<div class="nav">
+
+<a href="/rankings" id="navHome">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+<path d="M4 11l8-7 8 7v9H4z"/>
+<path d="M8 20h8"/>
+</svg>
+
+Home
+
+</a>
+
+<a href="/rankings" id="navRank">
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+<path d="M7 4h10v6a5 5 0 0 1-10 0zM7 6H3c0 4 2 6 4 6M17 6h4c0 4-2 6-4 6M12 15v4M8 20h8"/>
+</svg>
+
+Rankings
+
+</a>
+
+<a
+  href="https://mctiers.com/docs/v2"
+  target="_blank"
+  rel="noopener"
+>
+
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+<path d="M14 3v5h5M10 12l-2 2 2 2M14 12l2 2-2 2"/>
+</svg>
+
+API Docs
+
+</a>
+
+</div>
+
+<div class="dcs">
+
+<h4>Discords</h4>
+
+<div class="dgrid" id="dgrid"></div>
+
+</div>
+
+</aside>
+
+<div class="profile" id="profile"></div>
+
+<div class="modal" id="modal">
+
+<div class="modal-tabs">
+  <button class="mtab on" data-target="titlesTab">Titles</button>
+  <button class="mtab" data-target="pointsTab">Points</button>
+</div>
+
+<div id="titlesTab" class="modal-content on">
+  <div class="modal-body">How to obtain Achievement Titles</div>
+  <div class="modal-list">
+
+    <div class="modal-item">
+      <svg viewBox="0 0 24 24"><use href="#rank"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title" style="color:var(--gold);">Combat Grandmaster</div>
+        <div class="modal-item-desc">Obtained 400+ total points.</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 24 24"><use href="#rank"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title" style="color:var(--gold);">Combat Master</div>
+        <div class="modal-item-desc">Obtained 250+ total points.</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 24 24"><use href="#rank"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title" style="color:var(--redt);">Combat Ace</div>
+        <div class="modal-item-desc">Obtained 100+ total points.</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 24 24"><use href="#rank"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title" style="color:#b9753a;">Combat Specialist</div>
+        <div class="modal-item-desc">Obtained 50+ total points.</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 24 24"><use href="#rank"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title" style="color:#9aa3b5;">Combat Cadet</div>
+        <div class="modal-item-desc">Obtained 20+ total points.</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 24 24"><use href="#rank"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title">Combat Novice</div>
+        <div class="modal-item-desc">Obtained 10+ total points.</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 24 24"><use href="#rank"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title">Rookie</div>
+        <div class="modal-item-desc">Starting rank for players with less than 10 points.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="pointsTab" class="modal-content">
+
+  <div class="modal-body">How ranking points are calculated</div>
+
+  <div class="modal-list">
+
+    <div class="modal-item">
+      <svg viewBox="0 0 48 48"><use href="#trophy2" fill="#e0a23a"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title" style="color:var(--gold);">Tier 1</div>
+        <div class="modal-item-desc">HT1: 60 Points | LT1: 45 Points</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 48 48"><use href="#trophy2" fill="#9aa3b5"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title" style="color:#9aa3b5;">Tier 2</div>
+        <div class="modal-item-desc">HT2: 30 Points | LT2: 20 Points</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 48 48"><use href="#trophy2" fill="#b9753a"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title" style="color:#b9753a;">Tier 3</div>
+        <div class="modal-item-desc">HT3: 10 Points | LT3: 6 Points</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 24 24"><use href="#up1" color="#7d879a"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title">Tier 4</div>
+        <div class="modal-item-desc">HT4: 4 Points | LT4: 3 Points</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <svg viewBox="0 0 24 24"><use href="#up1" color="#7d879a"/></svg>
+      <div class="modal-item-info">
+        <div class="modal-item-title">Tier 5</div>
+        <div class="modal-item-desc">HT5: 2 Points | LT5: 1 Point</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<button class="close-btn" id="mclose">Close</button>
+
+</div>
+
+<script>
+
+/* =========================================================
+   FROSTTIERS ROUTING
+   ========================================================= */
+
+const DISCORD_INVITE="https://discord.gg/eU54j69SX";
+
+function normalizePath(){
+
+  let path=window.location.pathname;
+
+  if(!path || path==="/")
+    return "/";
+
+  path=path.replace(/\/+$/,"");
+
+  return path || "/";
+
+}
+
+function routePath(){
+
+  const path=normalizePath();
+
+  /*
+    Root FrostTiers.xyz
+    automatically becomes FrostTiers.xyz/rankings
+  */
+
+  if(path==="/"){
+
+    window.history.replaceState(
+      {},
+      "",
+      "/rankings"
+    );
+
+    return "/rankings";
+
+  }
+
+  /*
+    FrostTiers.xyz/discord
+    sends the visitor to the official
+    FrostTiers Discord invite.
+  */
+
+  if(path==="/discord"){
+
+    window.location.replace(
+      DISCORD_INVITE
+    );
+
+    return "/discord";
+
+  }
+
+  /*
+    Rankings is the main application route.
+  */
+
+  if(path==="/rankings")
+    return "/rankings";
+
+  /*
+    Unknown FrostTiers routes return to rankings.
+  */
+
+  window.history.replaceState(
+    {},
+    "",
+    "/rankings"
+  );
+
+  return "/rankings";
+
+}
+
+const CURRENT_ROUTE=routePath();
+
+/* =========================================================
+   DATA
+   ========================================================= */
+
+const LADDER=[
+  "LT5","HT5","LT4","HT4","LT3",
+  "HT3","LT2","HT2","LT1","HT1"
+];
+
+const PTS=[
+  1,2,4,6,9,
+  12,16,20,26,32
+];
+
+const MODES=[
+  ["vanilla","Vanilla"],
+  ["uhc","UHC"],
+  ["pot","Pot"],
+  ["neth","NethOP"],
+  ["smp","SMP"],
+  ["sword","Sword"],
+  ["axe","Axe"],
+  ["mace","Mace"]
+];
+
+const TABS=[
+  ["overall","Overall","trophy"],
+  ["ltm","LTMs","ltm"],
+  ...MODES.map(m=>[m[0],m[1],m[0]])
+];
+
+const DISCORDS={};
+
+let PLAYERS=[];
+
+const TITLES=[
+  [400,"Combat Grandmaster"],
+  [250,"Combat Master"],
+  [100,"Combat Ace"],
+  [50,"Combat Specialist"],
+  [20,"Combat Cadet"],
+  [10,"Combat Novice"],
+  [0,"Rookie"]
+];
+
+const REGION={
+  NA:"North America",
+  EU:"Europe",
+  AS:"Asia",
+  AU:"Australia"
+};
+
+const RC={
+  NA:"#e0585e",
+  EU:"#6fd37f",
+  AS:"#c78ab0",
+  AU:"#e0bf55"
+};
+
+const $=s=>document.querySelector(s);
+
+const ic=k=>`<svg><use href="#${k}"/></svg>`;
+
+const pts=p=>
+ Object.values(p.t||{})
+ .reduce((a,t)=>a+(PTS[LADDER.indexOf(t)]||0),0);
+
+const title=p=>
+ TITLES.find(t=>pts(p)>=t[0])[1];
+
+/* =========================================================
+   REAL MINECRAFT SKINS
+   ========================================================= */
+
+const SKIN_API="https://api.mcheads.org";
+
+const skinFailed=new Set();
+
+function bodySkin(name,size=128){
+
+  return (
+    SKIN_API+
+    "/avatar/"+
+    encodeURIComponent(name)+
+    "/right/"+
+    size
+  );
+
+}
+
+function profileSkin(name,size=256){
+
+  return bodySkin(name,size);
+
+}
+
+function skinPlaceholder(){
+
+  return (
+    "data:image/svg+xml,"+
+    encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg"
+           viewBox="0 0 64 96">
+        <rect width="64" height="96" rx="8" fill="#101722"/>
+        <rect x="20" y="8" width="24" height="24" fill="#30394a"/>
+        <rect x="14" y="32" width="36" height="36" fill="#242c3b"/>
+        <rect x="8" y="34" width="7" height="29" fill="#30394a"/>
+        <rect x="49" y="34" width="7" height="29" fill="#30394a"/>
+        <rect x="18" y="67" width="12" height="25" fill="#30394a"/>
+        <rect x="34" y="67" width="12" height="25" fill="#30394a"/>
+      </svg>
+    `)
+  );
+
+}
+
+function loadSkin(img){
+
+  if(!img) return;
+
+  const name=img.dataset.n;
+
+  if(!name) return;
+
+  if(img.dataset.skinStarted==="true") return;
+
+  img.dataset.skinStarted="true";
+
+  const isProfile=img.closest(".pav");
+
+  const size=isProfile?256:128;
+
+  const url=isProfile
+    ?profileSkin(name,size)
+    :bodySkin(name,size);
+
+  img.onload=()=>{
+
+    img.dataset.loaded="true";
+    img.classList.remove("skin-fallback");
+
+  };
+
+  img.onerror=()=>{
+
+    if(skinFailed.has(name)){
+
+      img.onerror=null;
+      img.src=skinPlaceholder();
+      img.classList.add("skin-fallback");
+
+      return;
+
+    }
+
+    skinFailed.add(name);
+
+    img.onerror=null;
+    img.src=skinPlaceholder();
+    img.classList.add("skin-fallback");
+
+  };
+
+  img.src=url;
+
+}
+
+function loadAllSkins(){
+
+  document
+    .querySelectorAll("img.skin[data-n]")
+    .forEach(loadSkin);
+
+}
+
+/* =========================================================
+   RANKING
+   ========================================================= */
+
+const ranks=()=>{
+
+  const m={};
+
+  [...PLAYERS]
+    .sort(
+      (a,b)=>
+        pts(b)-pts(a) ||
+        a.name.localeCompare(b.name)
+    )
+    .forEach((p,i)=>{
+      m[p.name]=i+1;
+    });
+
+  return m;
+
+};
+
+const rcls=r=>
+ r<4?"r"+r:"rn";
+
+let tab="overall";
+let query="";
+
+function tagClass(t){
+
+  const l=LADDER.indexOf(t);
+
+  return l>=8
+    ?"g"
+    :l>=6
+    ?"s"
+    :l>=4
+    ?"o"
+    :"lo";
+
+}
+
+function tierEl(k,t){
+
+  const c=tagClass(t);
+
+  return `
+    <div class="t ${c==="o"?"b3":""}">
+      <span class="ic">${ic(k)}</span>
+      <span class="tag ${c}">${t}</span>
+    </div>
+  `;
+
+}
+
+const sortedModes=p=>
+ MODES
+ .filter(m=>p.t&&p.t[m[0]])
+ .sort(
+   (a,b)=>
+     LADDER.indexOf(p.t[b[0]])-
+     LADDER.indexOf(p.t[a[0]])
+ );
+
+const match=p=>
+ !query ||
+ p.name.toLowerCase().includes(query);
+
+/* =========================================================
+   OVERALL
+   ========================================================= */
+
+function renderOverall(){
+
+  const R=ranks();
+
+  const rows=
+    PLAYERS
+    .filter(match)
+    .sort(
+      (a,b)=>
+        R[a.name]-R[b.name]
+    );
+
+  if(!rows.length){
+
+    return `
+      <div class="empty">
+        No players found.
+      </div>
+    `;
+
+  }
+
+  return rows.map((p,i)=>`
+
+    <article
+      class="card"
+      data-p="${p.name}"
+      style="--i:${Math.min(i,10)}"
+    >
+
+      <div class="top">
+
+        <div class="rank ${rcls(R[p.name])}">
+
+          <b>${R[p.name]}.</b>
+
+          <img
+            class="skin"
+            data-n="${p.name}"
+            alt="${p.name} Minecraft skin"
+          >
+
+        </div>
+
+        <div class="who">
+
+          <h3>${p.name}</h3>
+
+          <div class="ttl">
+
+            <svg viewBox="0 0 24 24">
+              <use href="#rank"/>
+            </svg>
+
+            <span>${title(p)}</span>
+
+          </div>
+
+        </div>
+
+        <div class="reg ${p.region}">
+          ${p.region}
+        </div>
+
+      </div>
+
+      <div class="tl">
+
+        <small>TIERS</small>
+
+        <div class="tiers">
+          ${sortedModes(p)
+            .map(m=>tierEl(m[0],p.t[m[0]]))
+            .join("")}
+        </div>
+
+      </div>
+
+    </article>
+
+  `).join("");
+
+}
+
+/* =========================================================
+   MODE RANKINGS
+   ========================================================= */
+
+function renderMode(){
+
+  const cols=[1,2,3,4,5].map(n=>{
+
+    const rows=
+      PLAYERS
+      .filter(
+        p=>
+          p.t &&
+          p.t[tab] &&
+          p.t[tab][2]==n &&
+          match(p)
+      )
+      .sort(
+        (a,b)=>
+          (a.t[tab][0]==="H"?0:1)-
+          (b.t[tab][0]==="H"?0:1) ||
+          a.name.localeCompare(b.name)
+      );
+
+    return `
+
+      <div class="tcol">
+
+        <div class="th h${n}">
+          <svg><use href="#trophy2"/></svg>
+          Tier ${n}
+        </div>
+
+        ${rows.map((p,i)=>`
+
+          <div
+            class="prow"
+            data-p="${p.name}"
+            style="
+              --rc:${RC[p.region]||"#6b7385"};
+              --i:${Math.min(i+n,14)}
+            "
+          >
+
+            <img
+              class="skin"
+              data-n="${p.name}"
+              alt="${p.name} Minecraft skin"
+            >
+
+            <span>${p.name}</span>
+
+            <svg>
+              <use href="${
+                p.t[tab][0]==="H"
+                  ?"up2"
+                  :"up1"
+              }"/>
+            </svg>
+
+          </div>
+
+        `).join("")}
+
+      </div>
+
+    `;
+
+  }).join("");
+
+  return `<div class="tcols">${cols}</div>`;
+
+}
+
+/* =========================================================
+   LIMITED TIME MODES
+   ========================================================= */
+
+function renderLTM(){
+
+  return `
+
+    <div class="ltm">
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M14.700 6.300a4 4 0 0 0 4.900 4.900L9 21.700a2.100 2.100 0 0 1-3-3L16.500 8.100"/>
+        <path d="M4 4l5 5M15 4l-9 9"/>
+        <circle cx="6" cy="18" r="2"/>
+      </svg>
+
+      <h2>
+        Limited-Time Modes are coming!
+      </h2>
+
+      <p>
+        We're working on implementing LTMs,
+        which will include team-based leaderboards
+        for various kit events - however, a few
+        other things will take priority :)
+      </p>
+
+    </div>
+
+  `;
+
+}
+
+/* =========================================================
+   ANIMATION
+   ========================================================= */
+
+function replay(){
+
+  const l=$("#list");
+
+  l.classList.remove("anim");
+
+  void l.offsetWidth;
+
+  l.classList.add("anim");
+
+  requestAnimationFrame(loadAllSkins);
+
+  clearTimeout(replay.t);
+
+  replay.t=setTimeout(
+    ()=>l.classList.remove("anim"),
+    1200
+  );
+
+}
+
+function countUp(el,end){
+
+  const t0=performance.now();
+  const d=700;
+
+  (function f(t){
+
+    const k=Math.min(
+      1,
+      (t-t0)/d
+    );
+
+    const e=
+      1-Math.pow(1-k,3);
+
+    el.textContent=
+      `(${Math.round(end*e)} points)`;
+
+    if(k<1)
+      requestAnimationFrame(f);
+
+  })(t0);
+
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+
+function render(){
+
+  $("#cols").style.display=
+    tab==="overall"
+      ?"grid"
+      :"none";
+
+  $("#list").innerHTML=
+    tab==="overall"
+      ?renderOverall()
+      :tab==="ltm"
+      ?renderLTM()
+      :renderMode();
+
+}
+
+/* =========================================================
+   TABS
+   ========================================================= */
+
+function tabs(){
+
+  $("#tabs").innerHTML=
+    TABS
+    .map(t=>`
+
+      <button
+        class="tab ${t[0]===tab?"on":""}"
+        data-t="${t[0]}"
+      >
+
+        ${ic(t[2])}
+        ${t[1]}
+
+      </button>
+
+    `)
+    .join("");
+
+}
+
+$("#tabs").addEventListener(
+  "click",
+  e=>{
+
+    const b=
+      e.target.closest(".tab");
+
+    if(!b) return;
+
+    tab=b.dataset.t;
+
+    tabs();
+    render();
+    replay();
+
+  }
+);
+
+$("#q").addEventListener(
+  "input",
+  e=>{
+
+    query=
+      e.target.value
+      .trim()
+      .toLowerCase();
+
+    render();
+
+    requestAnimationFrame(loadAllSkins);
+
+  }
+);
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+const ov=$("#ov");
+const drawer=$("#drawer");
+const prof=$("#profile");
+
+function closeAll(){
+
+  drawer.classList.remove("on");
+  prof.classList.remove("on");
+  $("#modal").classList.remove("on");
+  ov.classList.remove("on");
+
+}
+
+function openProfile(name){
+
+  const p=
+    PLAYERS.find(x=>x.name===name);
+
+  if(!p) return;
+
+  const r=
+    ranks()[name];
+
+  prof.innerHTML=`
+
+    <button
+      class="pclose"
+      aria-label="Close"
+    >
+      ✕
+    </button>
+
+    <div class="pav">
+
+      <img
+        class="skin"
+        data-n="${name}"
+        alt="${name} Minecraft skin"
+      >
+
+    </div>
+
+    <h2>${p.name}</h2>
+
+    <div class="pill">
+
+      <svg viewBox="0 0 24 24">
+        <use href="#rank"/>
+      </svg>
+
+      ${title(p)}
+
+    </div>
+
+    <div class="preg">
+      ${REGION[p.region]||p.region}
+    </div>
+
+    <a
+      class="nmc"
+      href="https://namemc.com/profile/${encodeURIComponent(p.name)}"
+      target="_blank"
+      rel="noopener"
+    >
+
+      <i>n</i>
+      NameMC ↗
+
+    </a>
+
+    <h5>POSITION</h5>
+
+    <div class="pos">
+
+      <div class="rank ${rcls(r)}">
+        <b>${r}.</b>
+      </div>
+
+      <svg>
+        <use href="#trophy"/>
+      </svg>
+
+      <strong>OVERALL</strong>
+
+      <small>
+        (${pts(p)} points)
+      </small>
+
+    </div>
+
+    <h5>TIERS</h5>
+
+    <div class="ptiers">
+
+      ${sortedModes(p)
+        .map(m=>tierEl(m[0],p.t[m[0]]))
+        .join("")}
+
+    </div>
+
+  `;
+
+  prof
+    .querySelectorAll(".ptiers .t")
+    .forEach(
+      (el,i)=>
+        el.style.setProperty("--i",i)
+    );
+
+  countUp(
+    prof.querySelector(".pos small"),
+    pts(p)
+  );
+
+  prof.classList.add("on");
+  ov.classList.add("on");
+  prof.scrollTop=0;
+
+  prof
+    .querySelector(".pclose")
+    .onclick=closeAll;
+
+  requestAnimationFrame(loadAllSkins);
+
+}
+
+$("#list").addEventListener(
+  "click",
+  e=>{
+
+    const el=
+      e.target.closest("[data-p]");
+
+    if(el)
+      openProfile(el.dataset.p);
+
+  }
+);
+
+/* =========================================================
+   DRAWER + ROUTING
+   ========================================================= */
+
+$("#open").onclick=()=>{
+
+  drawer.classList.add("on");
+  ov.classList.add("on");
+
+};
+
+$("#close").onclick=closeAll;
+
+ov.onclick=closeAll;
+
+function goToRankings(){
+
+  closeAll();
+
+  if(normalizePath()!=="/rankings"){
+
+    window.history.pushState(
+      {},
+      "",
+      "/rankings"
+    );
+
+  }
+
+  tab="overall";
+  query="";
+  $("#q").value="";
+
+  tabs();
+  render();
+  replay();
+
+}
+
+$("#navHome").onclick=e=>{
+
+  e.preventDefault();
+
+  goToRankings();
+
+};
+
+$("#navRank").onclick=e=>{
+
+  e.preventDefault();
+
+  goToRankings();
+
+};
+
+/*
+  Handle browser back/forward.
+*/
+
+window.addEventListener(
+  "popstate",
+  ()=>{
+
+    const path=normalizePath();
+
+    if(path==="/discord"){
+
+      window.location.replace(
+        DISCORD_INVITE
+      );
+
+      return;
+
+    }
+
+    if(path==="/" || path==="/rankings"){
+
+      goToRankings();
+
+      return;
+
+    }
+
+    window.history.replaceState(
+      {},
+      "",
+      "/rankings"
+    );
+
+    goToRankings();
+
+  }
+);
+
+/* =========================================================
+   DISCORD GRID
+   ========================================================= */
+
+$("#dgrid").innerHTML=
+  MODES
+  .map(m=>`
+
+    <a
+      href="${DISCORDS[m[0]]||"#"}"
+      target="_blank"
+      rel="noopener"
+      aria-label="${m[1]} Discord"
+    >
+
+      ${ic(m[0])}
+
+    </a>
+
+  `)
+  .join("");
+
+/* =========================================================
+   INFO + COPY + MODAL TABS
+   ========================================================= */
+
+$("#infoBtn").onclick=()=>{
+
+  $("#modal").classList.add("on");
+  ov.classList.add("on");
+
+};
+
+$("#mclose").onclick=closeAll;
+
+document.querySelectorAll(".mtab").forEach(btn=>{
+
+  btn.onclick=e=>{
+
+    document
+      .querySelectorAll(".mtab")
+      .forEach(
+        b=>b.classList.remove("on")
+      );
+
+    document
+      .querySelectorAll(".modal-content")
+      .forEach(
+        c=>c.classList.remove("on")
+      );
+
+    btn.classList.add("on");
+
+    document
+      .getElementById(btn.dataset.target)
+      .classList.add("on");
+
+  };
+
+});
+
+$("#copy").onclick=()=>{
+
+  navigator.clipboard &&
+  navigator.clipboard.writeText(
+    "Play.Radlus.Site"
+  );
+
+  const e=$("#ip");
+  const b=e.parentElement;
+
+  e.textContent="Copied!";
+
+  b.classList.add("ok");
+
+  setTimeout(()=>{
+
+    e.textContent="Play.Radlus.Site";
+    b.classList.remove("ok");
+
+  },1200);
+
+};
+
+/* =========================================================
+   INITIAL LOAD
+   ========================================================= */
+
+/*
+  If /discord was requested, routePath()
+  already started the Discord redirect.
+
+  Otherwise initialize the rankings application.
+*/
+
+if(CURRENT_ROUTE!=="/discord"){
+
+  tabs();
+  render();
+  replay();
+
+}
+
+</script>
+
+</body>
+</html>
