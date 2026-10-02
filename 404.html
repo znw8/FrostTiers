@@ -2,91 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FrostTiers</title>
 
-  <style>
-    html,body{
-      margin:0;
-      width:100%;
-      height:100%;
-      background:#0b0d12;
-      color:#e6e9f0;
-      font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
-    }
+  <script>
+    (function () {
+      const path = window.location.pathname;
 
-    body{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
+      if (path === "/discord") {
+        window.location.replace("https://discord.gg/eU54j69SX");
+        return;
+      }
 
-    #loading{
-      color:#7d879a;
-      font-size:14px;
-    }
-  </style>
+      /*
+       * GitHub Pages does not understand clean SPA routes such as
+       * /rankings, so load the real index.html while keeping the
+       * current URL in the browser.
+       */
+
+      fetch("/index.html")
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("Failed to load index.html");
+          }
+
+          return response.text();
+        })
+        .then(function (html) {
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(function (error) {
+          console.error(error);
+
+          document.body.innerHTML = `
+            <div style="
+              min-height:100vh;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              background:#0b0d12;
+              color:#e6e9f0;
+              font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+              text-align:center;
+            ">
+              <div>
+                <h2>FrostTiers could not be loaded.</h2>
+                <p style="color:#7d879a;">
+                  Please refresh the page.
+                </p>
+              </div>
+            </div>
+          `;
+        });
+    })();
+  </script>
 </head>
 
-<body>
-
-<div id="loading">Loading FrostTiers...</div>
-
-<script>
-(function(){
-
-  const path =
-    window.location.pathname
-      .replace(/\/+$/, "")
-      .toLowerCase() || "/";
-
-  /*
-   * /discord should go directly to the
-   * FrostTiers Discord invite.
-   */
-  if(path === "/discord"){
-    window.location.replace(
-      "https://discord.gg/eU54j69SX"
-    );
-    return;
-  }
-
-  /*
-   * GitHub Pages sends unknown clean URLs
-   * to this 404 page.
-   *
-   * Instead of redirecting /rankings,
-   * load the real index.html while keeping
-   * /rankings in the browser URL.
-   */
-  fetch("/", {
-    cache: "no-store"
-  })
-  .then(function(response){
-
-    if(!response.ok){
-      throw new Error("Could not load FrostTiers.");
-    }
-
-    return response.text();
-
-  })
-  .then(function(html){
-
-    document.open();
-    document.write(html);
-    document.close();
-
-  })
-  .catch(function(){
-
-    document.getElementById("loading").textContent =
-      "FrostTiers could not be loaded. Please refresh.";
-
-  });
-
-})();
-</script>
-
+<body style="margin:0;background:#0b0d12;">
 </body>
 </html>
