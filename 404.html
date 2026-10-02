@@ -1,22 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FrostTiers</title>
-
-  <script>
-    const path = window.location.pathname;
-
-    if (path === "/discord") {
-      window.location.replace("https://discord.gg/eU54j69SX");
-    } else {
-      window.location.replace("/");
-    }
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FrostTiers</title>
 </head>
 
 <body>
-  Loading FrostTiers...
+
+<script>
+const path =
+  window.location.pathname
+    .replace(/\/+$/, "")
+    .toLowerCase() || "/";
+
+if(path === "/admin"){
+  window.location.replace(
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  );
+}
+else if(path === "/discord"){
+  window.location.replace(
+    "https://discord.gg/eU54j69SX"
+  );
+}
+else{
+  window.location.replace("/");
+}
+</script>
+
 </body>
 </html>
