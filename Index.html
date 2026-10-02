@@ -1634,15 +1634,9 @@ function routePath(){
     automatically becomes FrostTiers.xyz/rankings
   */
 
-  if(path==="/"){
-
-    window.history.replaceState(
-      {},
-      "",
-      "/rankings"
-    );
-
-    return "/rankings";
+if(path==="/"){
+  return "rankings";
+}
 
   }
 
